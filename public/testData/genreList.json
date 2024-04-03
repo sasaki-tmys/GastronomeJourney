@@ -1,0 +1,102 @@
+[
+  {
+    "id": "1",
+    "genreName": "和食",
+    "categoryId": "1"
+  },
+  {
+    "id": "2",
+    "genreName": "洋食",
+    "categoryId": "1"
+  },
+  {
+    "id": "3",
+    "genreName": "中華",
+    "categoryId": "1"
+  },
+  {
+    "id": "4",
+    "genreName": "その他居酒屋",
+    "categoryId": "1"
+  },
+  {
+    "id": "5",
+    "genreName": "醤油ラーメン",
+    "categoryId": "2"
+  },
+  {
+    "id": "6",
+    "genreName": "味噌ラーメン",
+    "categoryId": "2"
+  },
+  {
+    "id": "7",
+    "genreName": "塩ラーメン",
+    "categoryId": "2"
+  },
+  {
+    "id": "8",
+    "genreName": "豚骨ラーメン",
+    "categoryId": "2"
+  },
+  {
+    "id": "9",
+    "genreName": "コーヒー",
+    "categoryId": "3"
+  },
+  {
+    "id": "10",
+    "genreName": "紅茶",
+    "categoryId": "3"
+  },
+  {
+    "id": "11",
+    "genreName": "スイーツ",
+    "categoryId": "3"
+  },
+  {
+    "id": "12",
+    "genreName": "軽食カフェ",
+    "categoryId": "3"
+  },
+  {
+    "id": "13",
+    "genreName": "にぎり寿司",
+    "categoryId": "4"
+  },
+  {
+    "id": "14",
+    "genreName": "巻物寿司",
+    "categoryId": "4"
+  },
+  {
+    "id": "15",
+    "genreName": "刺身",
+    "categoryId": "4"
+  },
+  {
+    "id": "16",
+    "genreName": "寿司以外の日本料理",
+    "categoryId": "4"
+  },
+  {
+    "id": "17",
+    "genreName": "国産牛焼肉",
+    "categoryId": "5"
+  },
+  {
+    "id": "18",
+    "genreName": "海外産牛焼肉",
+    "categoryId": "5"
+  },
+  {
+    "id": "19",
+    "genreName": "ホルモン",
+    "categoryId": "5"
+  },
+  {
+    "id": "20",
+    "genreName": "その他焼肉",
+    "categoryId": "5"
+  }
+]
