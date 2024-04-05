@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import router from '@/router'
 import { ref, onMounted } from 'vue'
-// import categoryTestData from '@/testData/categoryList.json'
-import SettingsView from '@/components/SettingsView/SettingsView.vue'
+import PostMenu from '@/components/parts/PostMenu.vue'
 import axios from 'axios'
 
 interface Category {
     id: string
-    categoryName: string
-    categoryImage: string
+    category_name: string
+    category_image: string
 }
 
 const categoryList = ref<Category[]>()
@@ -18,8 +17,8 @@ const clickCategory = (id: any) => {
 
 async function fechCategories() {
     try {
-        const response = await axios.get('/testData/categoryList.json')
-        categoryList.value = response.data
+        const response = await axios.get('http://localhost:3000/api/categories')
+        categoryList.value = response.data.categories
     } catch (error: any) {
     console.error('Error:', error)
 }}
@@ -33,20 +32,20 @@ onMounted(() => {
 <template>
     <v-container>
         <div>
-            <v-row>
+            <v-row v-if="categoryList">
                 <v-col cols="12" md="6" v-for="category in categoryList" :key="category.id">
                     <v-card @click="clickCategory(category.id)" hover>
                         <v-img
-                        :src="category.categoryImage"
+                        :src="category.category_image"
                         height="250px"
                         cover
                         >
-                        <v-card-title class="categoryTitle">{{ category.categoryName }}</v-card-title>
+                        <v-card-title class="categoryTitle">{{ category.category_name }}</v-card-title>
                         </v-img>
                     </v-card>
                 </v-col>
             </v-row>
-            <SettingsView />
+            <PostMenu />
         </div>
     </v-container>
 </template>

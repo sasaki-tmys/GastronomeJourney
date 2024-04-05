@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import GlobalHeader from '@/components/parts/GlobalHeader.vue';
+
 </script>
 
 <template>

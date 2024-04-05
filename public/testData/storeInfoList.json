@@ -18,7 +18,7 @@
     "nameOfStore": "居酒屋久兵衛",
     "address": "北海道札幌市中央区南６条西３丁目６－３１ ジョイフル酒肴小路ビル 4階",
     "totalAmount": 3000,
-    "contents": "・焼き鳥<br>・日本酒",
+    "contents": "<h1>注文内容</h1><br>・焼き鳥<br>・日本酒",
     "photos": [
       "https://cdn.vuetifyjs.com/images/cards/plane.jpg",
       "https://cdn.vuetifyjs.com/images/cards/plane.jpg",

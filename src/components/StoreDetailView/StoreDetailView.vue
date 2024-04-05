@@ -8,9 +8,9 @@ const props = defineProps({
 
 // 店舗情報型定義
 interface StoreInfo {
-    id: string
-    category: string
-    genre: string
+    id: number
+    category: number
+    genre: number
     visitDate: string
     nameOfStore: string
     address: string
@@ -19,36 +19,38 @@ interface StoreInfo {
     photos: string[]
 }
 
-const storeInfo = ref<StoreInfo[]>()
-async function fechstoreInfoList() {
+const storeInfo = reactive({} as StoreInfo)
+
+async function fechstoreInfo() {
     try {
-        const response = await axios.get('/testData/storeInfoList.json')
-        storeInfo.value = response.data.filter((storeInfo: any) => storeInfo.id === props.storeId) || null
+        const response = await axios.get(import.meta.env.VITE_APP_BACKEND_BASE_URL + `/stores/${props.storeId}`)
+        Object.assign(storeInfo,response.data)
+        storeInfo.contents = response.data.contents.replace(/\n/g, '<br>')
+        console.log(storeInfo)
     } catch (error: any) {
     console.error('Error:', error)
 }}
 
 onMounted(() => {
-    fechstoreInfoList()
+    fechstoreInfo()
 })
 
 </script>
 
 <template>
     <v-container>
-        <v-card v-for="store in storeInfo" :key="store.id">
-            <v-card-title>{{ store.nameOfStore }}</v-card-title>
-            <v-card-subtitle>{{ '訪問日：' + store.visitDate }}</v-card-subtitle>
-            <v-card-subtitle>{{ '予算：' + store.totalAmount + '円' }}</v-card-subtitle>
+        <v-card flat>
+            <v-card-title>{{ storeInfo.nameOfStore }}</v-card-title>
+            <v-card-subtitle>{{ '訪問日：' + storeInfo.visitDate }}</v-card-subtitle>
+            <v-card-subtitle>{{ '予算：' + storeInfo.totalAmount + '円' }}</v-card-subtitle>
             <v-card-item>
-                <span>住所：</span><a :href="`https://www.google.com/maps/search/${store.address}`" target="_blank">{{ store.address }}</a>
+                <span>住所：</span><a :href="`https://www.google.com/maps/search/${storeInfo.nameOfStore}`" target="_blank">{{ storeInfo.address }}</a>
             </v-card-item>
             <v-card-item>
-                <span>{{ '注文内容' }}</span>
-                <v-card-text v-html="store.contents" />
+                <v-card-text v-html="storeInfo.contents" />
             </v-card-item>
-            <v-carousel show-arrows="hover">
-                <v-carousel-item v-for="poto, index in store.photos" :key="index" :src="poto" cover placeholder/>
+            <v-carousel show-arrows="hover" v-if="storeInfo.photos">
+                <v-carousel-item v-for="poto, index in storeInfo.photos" :key="index" :src="poto" cover placeholder/>
             </v-carousel>
         </v-card>
     </v-container>

@@ -5,14 +5,15 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+const BaseURL = import.meta.env.VITE_APP_BACKEND_BASE_URL
+
 const categoryName = ref('')
 const imageUrl = ref<any>()
 
 const addCategoryDate = reactive(
     {
-        id: '',
-        categoryName: '',
-        categoryImage: ''
+        category_name: '',
+        category_img: ''
     }
 )
 
@@ -28,16 +29,15 @@ function onFileSelected(e: any) {
 }
 
 const onSubmit = () => {
-    addCategoryDate.id = '7'
-    addCategoryDate.categoryName = categoryName.value
-    addCategoryDate.categoryImage = ''
+    addCategoryDate.category_name = categoryName.value
+    addCategoryDate.category_img = ''
     console.log(addCategoryDate)
     postCategory()
 }
 
 async function postCategory() {
     try {
-        await axios.post('/public/testData/categoryList.json', addCategoryDate)
+        await axios.post(BaseURL + '/categories', addCategoryDate)
         router.go(-1)
     } catch(error: any) {
         console.log(error)

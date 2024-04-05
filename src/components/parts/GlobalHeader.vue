@@ -16,7 +16,7 @@ const items = ref([
     },
     {
         title: 'ログアウト',
-        path: '/logout',
+        path: '/login',
     },
 ])
 
@@ -35,7 +35,7 @@ const clickCategory = (path: string) => {
         </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar color="background">
+    <v-app-bar color="background" >
         <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer" />
         <v-app-bar-title @click="router.push('/')" class="app-bar-title">Gastronome Journey</v-app-bar-title>
     </v-app-bar>

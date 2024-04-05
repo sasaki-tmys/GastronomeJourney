@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import axios from 'axios'
-import { ref, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { ref, onMounted, watch, reactive } from 'vue'
 
 interface Category {
     id: string
@@ -13,6 +14,14 @@ interface Genre {
     categoryId: string
 }
 
+const router = useRouter()
+
+const visitDate = ref('2024-04-05')
+const nameOfStore = ref('')
+const address = ref('')
+const totalAmount = ref()
+const contents = ref('')
+
 const categoryList = ref<Category[]>()
 const selectCategory = ref()
 const genreList = ref<Genre[]>([])
@@ -20,6 +29,18 @@ const filterGenreList = ref<Genre[]>([])
 const selectGenre = ref()
 
 const imageUrls = ref<string[]>([])
+
+const addArticleData = reactive({
+    category: 0,
+    genre: 0,
+    visitDate: '',
+    nameOfStore: '',
+    address: '',
+    totalAmount: 0,
+    contents: '',
+    photos: '',
+})
+
 
 // 複数のファイルを処理できるように変更
 function onFileSelected(e: any) {
@@ -60,7 +81,25 @@ async function fechGenreList() {
 }}
 
 const onSubmit = () => {
-    alert('投稿ボタンが押下されました')
+    addArticleData.nameOfStore = nameOfStore.value
+    addArticleData.category = selectCategory.value
+    addArticleData.genre = selectGenre.value
+    addArticleData.visitDate = visitDate.value
+    addArticleData.address = address.value
+    addArticleData.totalAmount = totalAmount.value
+    addArticleData.contents = contents.value
+    addArticleData.photos = ''
+    postArticle()
+}
+
+async function postArticle() {
+    try {
+        await axios.post(import.meta.env.VITE_APP_BACKEND_BASE_URL + '/stores', addArticleData)
+        router.go(-1)
+        
+    } catch(error: any) {
+        console.log(error)
+    }
 }
 
 onMounted(() => {
@@ -77,12 +116,12 @@ watch(selectCategory, () => {
 <template>
     <v-container>
         <v-form @submit.prevent="onSubmit">
-            <v-text-field type="text" placeholder="店名" variant="outlined" />
+            <v-text-field type="text" placeholder="店名" variant="outlined" v-model="nameOfStore" />
             <v-select :items="categoryList" item-title="categoryName" item-value="id" variant="outlined" placeholder="カテゴリー" v-model="selectCategory" ></v-select>
             <v-select :items="filterGenreList" item-title="genreName" item-value="id" variant="outlined" placeholder="ジャンル" v-model="selectGenre" ></v-select>
-            <v-text-field type="text" placeholder="住所" variant="outlined" />
-            <v-text-field type="number" placeholder="金額" variant="outlined" />
-            <v-textarea type="text" placeholder="食べたもの" variant="outlined" />
+            <v-text-field type="text" placeholder="住所" variant="outlined" v-model="address" />
+            <v-text-field type="number" placeholder="金額" variant="outlined" v-model="totalAmount" />
+            <v-textarea type="text" placeholder="食べたもの" variant="outlined" v-model="contents" />
             <v-file-input label="写真" @change="onFileSelected" accept="image/*" prepend-icon="mdi-camera" variant="outlined" multiple />
             <!-- 選択された複数の画像のプレビューを表示するように修正 -->
             <v-carousel  v-if="imageUrls.length" class="image-preview" show-arrows="hover" >
