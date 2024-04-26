@@ -16,12 +16,14 @@
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "axios": "^1.6.8",
-    "firebase": "^10.10.0",
+    "firebase": "^10.11.0",
+    "mavon-editor": "^3.0.1",
     "moment-timezone": "^0.5.45",
     "pinia": "^2.1.7",
     "vee-validate": "^4.12.6",
     "vue": "^3.4.21",
     "vue-router": "^4.3.0",
+    "vue3-uuid": "^1.0.0",
     "vuetify": "^3.5.11",
     "yup": "^1.4.0"
   },

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import router from '@/router'
 import { ref, onMounted } from 'vue'
-import PostMenu from '@/components/parts/PostMenu.vue'
+import PostMenu from '@/components/parts/MenuList.vue'
 import axios from 'axios'
 
 interface Category {
     id: string
     category_name: string
-    category_image: string
+    category_img: string
+    img_name: string
 }
 
 const categoryList = ref<Category[]>()
@@ -36,7 +37,7 @@ onMounted(() => {
                 <v-col cols="12" md="6" v-for="category in categoryList" :key="category.id">
                     <v-card @click="clickCategory(category.id)" hover>
                         <v-img
-                        :src="category.category_image"
+                        :src="category.category_img"
                         height="250px"
                         cover
                         >
@@ -45,7 +46,7 @@ onMounted(() => {
                     </v-card>
                 </v-col>
             </v-row>
-            <PostMenu />
+            <PostMenu DisplayContents="Home" />
         </div>
     </v-container>
 </template>

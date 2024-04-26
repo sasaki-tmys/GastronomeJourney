@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import router from '@/router'
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import PostMenu from '@/components/parts/MenuList.vue'
 import axios from 'axios'
 
 const props = defineProps({
@@ -24,7 +25,7 @@ interface StoreInfo {
     address: string
     totalAmount: number
     contents: string
-    photos: string[]
+    photos: string
 }
 
 const selectedGenreList = ref<Genre[]>([])
@@ -45,7 +46,11 @@ async function fechstoreInfos() {
     try {
         const response = await axios.get(import.meta.env.VITE_APP_BACKEND_BASE_URL + `/stores/category/${props.categoryId}`)
         storeInfoAllList.value = response.data
+        storeInfoAllList.value.photos = response.data.map((store: any) => {
+            store.photos = store.photos.split(',')
+        })
         storeInfoList.value = storeInfoAllList.value
+        console.log(storeInfoList.value)
     } catch (error: any) {
     console.error('Error:', error)
 }}
@@ -61,10 +66,6 @@ watch((selectedGenre), () => {
 onMounted(() => {
     fechGenres()
     fechstoreInfos()
-
-    // getCategoryById(props.categoryId)
-    // getGenreById(props.categoryId)
-    // getStoreInfoById(props.categoryId)
 })
 </script>
 
@@ -78,9 +79,9 @@ onMounted(() => {
         <div>
             <v-row>
                 <v-col cols="12" md="4" v-for="stores in storeInfoList" :key="stores.id">
-                    <v-card @click="router.push(`/store/${stores.id}/detail`)">
+                    <v-card @click="router.push(`/category/${props.categoryId}/store/${stores.id}/`)">
                         <v-img
-                        src="https://cdn.vuetifyjs.com/images/cards/house.jpg"
+                        :src="stores.photos[0]"
                         height="200px"
                         cover
                         >
@@ -89,6 +90,7 @@ onMounted(() => {
                     </v-card>
                 </v-col>
             </v-row>
+            <PostMenu DisplayContents="Edit" :CategoryId="categoryId" />
         </div>
     </v-container>
 </template>

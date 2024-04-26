@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
-import CategoryDetailsView from '@/views/CategoryDetailsView.vue'
+import CategoryDetailView from '@/views/CategoryDetailView.vue'
 import SettingsView from '@/views/SettingsView.vue'
-import AddCategory from '@/views/AddCategory.vue'
+import CategoryFrom from '@/views/CategoryForm.vue'
 import AddGenre from '@/views/AddGenre.vue'
-import ArticleCreateView from '@/views/ArticleCreateView.vue'
-import StoreDetaleView from '@/views/StoreDetaileView.vue'
+import StoreForm from '@/views/StoreForm.vue'
+import StoreDetaleView from '@/views/StoreDetailView.vue'
 import LoginView from '@/views/LoginView.vue'
 import SginupForm from '@/components/LoginView/SginupForm.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -20,9 +20,15 @@ const router = createRouter({
     },
     {
       path: '/category/:categoryId',
-      name: 'categoryDetails',
+      name: 'categoryDetail',
       props: true,
-      component: CategoryDetailsView
+      component: CategoryDetailView
+    },
+    {
+      path: '/category/:categoryId/store/:storeId/',
+      name: 'storedetail',
+      props: true,
+      component: StoreDetaleView
     },
     {
       path: '/settings',
@@ -32,7 +38,14 @@ const router = createRouter({
     {
       path: '/addcategory',
       name: 'addcategory',
-      component: AddCategory
+      props: true,
+      component: CategoryFrom
+    },
+    {
+      path: '/editcategory/:categoryId',
+      name: 'editcategory',
+      props: true,
+      component: CategoryFrom
     },
     {
       path: '/addgenre',
@@ -40,15 +53,15 @@ const router = createRouter({
       component: AddGenre
     },
     {
-      path: '/articlecreate',
-      name: 'articlecreate',
-      component: ArticleCreateView
+      path: '/addstore',
+      name: 'addstore',
+      component: StoreForm
     },
     {
-      path: '/store/:storeId/detail',
-      name: 'storedetail',
+      path: '/editstore/:storeId',
+      name: 'editstore',
       props: true,
-      component: StoreDetaleView
+      component: StoreForm
     },
     {
       path: '/login',

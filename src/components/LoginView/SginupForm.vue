@@ -1,10 +1,32 @@
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const name = ref('')
+const email = ref('')
+const password = ref('')
+const agreement = ref(false)
+const privacydialog = ref(false)
+const servicedialog = ref(false)
+const isValid = ref(false)
+const isLoading = ref(false)
+const visible = ref(false)
+const rules = {
+    email: (v: string) => !!(v || '').match(/@/) || 'Please enter a valid email',
+    length: (len: any) => (v: any) => (v || '').length >= len || `Invalid character length, required ${len}`,
+    password: (v: string) => !!(v || '').match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*(_|[^\w])).+$/) ||
+        'パスワードは、大文字、数字、特殊文字を含む必要があります。',
+    required: (v: any) => !!v || 'This field is required',
+    }
+</script>
+
 <template>
     <v-container>
         <div class="sginup">
         <v-img
         class="mx-auto my-6"
-        width="200"
-        height="200"
+        width="180"
+        height="180"
         src="src/assets/ssk_image_icon2.png"
         ></v-img>
     
@@ -171,25 +193,3 @@
     </div>
     </v-container>
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue'
-
-const name = ref('')
-const email = ref('')
-const password = ref('')
-const agreement = ref(false)
-const privacydialog = ref(false)
-const servicedialog = ref(false)
-const isValid = ref(false)
-const isLoading = ref(false)
-const visible = ref(false)
-const rules = {
-    email: (v: string) => !!(v || '').match(/@/) || 'Please enter a valid email',
-    length: (len: any) => (v: any) => (v || '').length >= len || `Invalid character length, required ${len}`,
-    password: (v: string) => !!(v || '').match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*(_|[^\w])).+$/) ||
-        'パスワードは、大文字、数字、特殊文字を含む必要があります。',
-    required: (v: any) => !!v || 'This field is required',
-    }
-</script>
-

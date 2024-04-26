@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CategoryDetails from '@/components/CategoryDetailsView/CategoryDetailsView.vue'
+import CategoryDetails from '@/components/CategoryDetailView/CategoryDetailView.vue'
 
 const props = defineProps({
     categoryId: { type: String, required: true }

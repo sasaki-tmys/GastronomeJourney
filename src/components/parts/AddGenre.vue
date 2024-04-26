@@ -60,7 +60,7 @@ onMounted(() => {
         <v-form @submit.prevent="onSubmit">
             <v-select :items="categoryList" item-title="category_name" item-value="id" v-model="categoryId" variant="outlined" placeholder="catetory" />
             <v-text-field v-model="genreName" variant="outlined" placeholder="genre Name"/>
-            <v-btn class="mt-2" type="submit" block>Submit</v-btn>
+            <v-btn class="mt-2" type="submit" block text="Add Genre" />
         </v-form>
     </v-container>
 </template>
