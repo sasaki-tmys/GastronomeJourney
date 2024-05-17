@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, watch, reactive } from 'vue'
-import { getStorage, uploadBytesResumable, getDownloadURL, ref as firebaseref } from "firebase/storage"
+import { getStorage, uploadBytesResumable, getDownloadURL, deleteObject, ref as firebaseref } from "firebase/storage"
+import { getDatabase, set, update, get, child, push, remove } from 'firebase/database'
+import { ref as dbRef } from 'firebase/database'
 import { v4 as uuidv4 } from 'uuid'
 
 const props = defineProps({
     isEdit: Boolean,
     storeId: String
 })
-
 interface Category {
-    id: string
+    id: string,
     category_name: string
-    category_img: string
+    category_image: string,
     img_name: string
 }
 interface Genre {
@@ -36,6 +36,7 @@ const customToolbars = {
         preview: true,
     }
 
+const db = getDatabase()
 const storage = getStorage()
 const router = useRouter()
 
@@ -132,18 +133,18 @@ async function addImg() {
     }
 }
 async function uploadImages(files: FileList | undefined) {
-    const urls = [];
+    const urls = []
     if (files === undefined) {
         return ''
     } else {
         for (let i = 0; i < files.length; i++) {
-            const file = files[i];
+            const file = files[i]
             if (file) {
-                const id = uuidv4();
-                const storageRef = firebaseref(storage, `images/stores/${id}`);
-                const uploadTask = await uploadBytesResumable(storageRef, file);
-                const url = await getDownloadURL(uploadTask.ref);
-                urls.push(url);
+                const id = uuidv4()
+                const storageRef = firebaseref(storage, `images/stores/${id}`)
+                const uploadTask = await uploadBytesResumable(storageRef, file)
+                const url = await getDownloadURL(uploadTask.ref)
+                urls.push(url)
             }
         }
         return urls.join(',')
@@ -153,71 +154,157 @@ async function uploadImages(files: FileList | undefined) {
 /**
  * APIリクエスト
  */
-// カテゴリーの取得
-async function fechCategoryList() {
+async function fetchCategoryList() {
+    const categoriesRef = dbRef(db, 'categories')
     try {
-        const response = await axios.get(import.meta.env.VITE_APP_BACKEND_BASE_URL + '/categories/')
-        categoryList.value = response.data.categories
-    } catch (error: any) {
-    console.error('Error:', error)
-}}
-// ジャンルの取得
-async function fechGenreList() {
+        const snapshot = await get(categoriesRef)
+        if (snapshot.exists()) {
+            const rawData = snapshot.val()
+            // rawDataをCategoryインターフェースの配列に変換
+            const categories: Category[] = Object.keys(rawData).map((key) => ({
+                id: key,
+                category_name: rawData[key].category_name,
+                category_image: rawData[key].category_image,
+                img_name: rawData[key].img_name
+            }))
+            categoryList.value = categories
+            console.log('カテゴリデータの取得が完了しました。')
+        } else {
+            console.log('カテゴリデータが見つかりません。')
+            categoryList.value = []
+        }
+    } catch (error) {
+        console.error('Error fetching categories:', error)
+    }
+}
+async function fetchGenreList() {
+    const genresRef = dbRef(db, 'genres')
     try {
-        const response = await axios.get(import.meta.env.VITE_APP_BACKEND_BASE_URL + '/genres/')
-        genreList.value = response.data
-        filterGenreList.value = response.data
-        
-    } catch (error: any) {
-    console.error('Error:', error)
-}}
+        const snapshot = await get(genresRef)
+        if (snapshot.exists()) {
+            const rawData = snapshot.val()
+            // rawDataをCategoryインターフェースの配列に変換
+            const genres: Genre[] = Object.keys(rawData).map((key) => ({
+                id: key,
+                name: rawData[key].name,
+                category_id: rawData[key].category_id
+            }))
+            genreList.value = genres
+            filterGenreList.value = genres
+            console.log('ジャンルデータの取得が完了しました。')
+        } else {
+            console.log('ジャンルデータが見つかりません。')
+            genreList.value = []
+        }
+    } catch (error) {
+        console.error('Error fetching genres:', error)
+    }
+}
+
+async function fetchFilterGenreList(genre: string) {
+    const genresRef = dbRef(db, `genres/${genre}`)
+    try {
+        const snapshot = await get(genresRef)
+        if (snapshot.exists()) {
+            const rawData = snapshot.val()
+            genreList.value = rawData
+            selectGenre.value = genre
+            console.log('ジャンルデータを取得しました。')
+        } else {
+            console.log('ジャンルデータが見つかりません。')
+            genreList.value = []
+        }
+    } catch (error) {
+        console.error('Error fetching categories:', error)
+    }
+}
+
 // 店舗情報の取得
 async function getStore() {
+    const storesRef = dbRef(db, `stores/${props.storeId}`)
     try {
-        const response = await axios.get(import.meta.env.VITE_APP_BACKEND_BASE_URL + `/stores/${props.storeId}`)
-        nameOfStore.value = response.data.nameOfStore
-        selectCategory.value = response.data.category
-        visitDate.value = response.data.visitDate
-        address.value = response.data.address
-        totalAmount.value = response.data.totalAmount
-        contents.value = response.data.contents
-        genreList.value = await axios.get(import.meta.env.VITE_APP_BACKEND_BASE_URL + `/genres/category/${response.data.category}`)
-        selectGenre.value = response.data.genre
-        console.log(response.data)
-    } catch(error: any) {
-        console.log(error)
-    } 
+        const snapshot = await get(storesRef)
+        const data = snapshot.val()
+        if (snapshot.exists()) {
+            nameOfStore.value = data.nameOfStore
+            selectCategory.value = data.category
+            visitDate.value = data.visitDate
+            address.value = data.address
+            totalAmount.value = data.totalAmount
+            contents.value = data.contents
+            fetchFilterGenreList(data.genre)
+            selectGenre.value = data.genre
+            imageUrls.value = data.photos.split(',')
+            console.log('店舗情報を取得しました。')
+        } else {
+            console.log('店舗情報が見つかりません。')
+        }
+    } catch (error) {
+        console.error('Error fetching stores:', error)
+    }
 }
 // 店舗情報の登録
 async function postStore() {
     try {
-        await axios.post(import.meta.env.VITE_APP_BACKEND_BASE_URL + '/stores', addStoreData)
+        const storeRef = dbRef(db, 'stores')
+        // Firebaseのキーを自動生成して使用する場合
+        const newPostKey = push(child(storeRef, 'stores')).key
+        await set(dbRef(db, `stores/${newPostKey}`), addStoreData)
         router.go(-1)
-        
-    } catch(error: any) {
+    } catch (error) {
         console.log(error)
     }
 }
+
 // 店舗情報の更新
 async function updateStore() {
     try {
-        await axios.put(import.meta.env.VITE_APP_BACKEND_BASE_URL + `/stores/${props.storeId}`, addStoreData)
+        const storeRef = dbRef(db, `stores/${props.storeId}`)
+        await update(storeRef, addStoreData)
         router.go(-1)
-        
-    } catch(error: any) {
+    } catch (error) {
         console.log(error)
     }
 }
+
 // 店舗情報の削除
 async function deleteStore() {
     try {
-        await axios.delete(import.meta.env.VITE_APP_BACKEND_BASE_URL + `/stores/${props.storeId}`)
-        router.push(`/category/${selectCategory.value}`)
-        
-    } catch(error: any) {
-        console.log(error)
+        // ストア情報を取得
+        const storeRef = dbRef(db, `stores/${props.storeId}`)
+        const snapshot = await get(storeRef)
+        if (snapshot.exists()) {
+            const storeData = snapshot.val()
+            const imageUrls = storeData.photos.split(',')
+            console.log('imageUrl', Array.isArray(imageUrls), imageUrls.length)
+            // データベースからストア情報を削除
+            await remove(storeRef)
+
+            // Firebase Storageから画像を削除
+            if (Array.isArray(imageUrls)) {
+                for (let index = 0; index < imageUrls.length; index++) {
+                    const imageRef = firebaseref(storage, imageUrls[index])
+                    await deleteObject(imageRef)
+                    console.log(`Image at ${imageUrls[index]} deleted successfully`)
+                }
+            } else {
+                const imageRef = firebaseref(storage, imageUrls)
+                console.log('storeData.photos', imageRef)
+                await deleteObject(imageRef)
+                console.log(`Image at ${imageUrls} deleted successfully`)
+            }
+
+            console.log(`Store with ID ${props.storeId} deleted successfully`)
+            router.push('/')
+        } else {
+            console.log("No store data available to delete")
+        }
+    } catch (error) {
+        console.error('Error deleting store and image:', error)
     }
 }
+
+
 
 /**
  * watchメソッド
@@ -238,8 +325,8 @@ watch(inputImage, () => {
  */
 
 onMounted(() => {
-    fechCategoryList()
-    fechGenreList()
+    fetchCategoryList()
+    fetchGenreList()
     initialFocus.value.focus()
     if(props.isEdit) {
         getStore()
@@ -280,7 +367,7 @@ onMounted(() => {
 :deep(.contents div) {
     background-color: #263238 !important;
 }
-:deep(.content-input-wrapper div) {
+:deep(.content-input-wrapper div) { 
     background-color: #263238 !important;
 }
 :deep(.auto-textarea-input) {

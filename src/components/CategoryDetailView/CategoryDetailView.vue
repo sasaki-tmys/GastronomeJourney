@@ -2,19 +2,20 @@
 import router from '@/router'
 import { ref, onMounted, watch } from 'vue'
 import PostMenu from '@/components/parts/MenuList.vue'
-import axios from 'axios'
+import { getDatabase, query, orderByChild, equalTo, get } from 'firebase/database'
+import { ref as dbRef } from 'firebase/database'
+const db = getDatabase()
 
 const props = defineProps({
     categoryId: {type: String, required: true}
 })
-
+const genreList = ref<Genre[]>([])
 
 interface Genre {
     id: string
     name: string
     category_id: string
 }
-
 // 店舗情報型定義
 interface StoreInfo {
     id: string
@@ -31,29 +32,62 @@ interface StoreInfo {
 const selectedGenreList = ref<Genre[]>([])
 const selectedGenre = ref()
 
-const storeInfoList = ref<StoreInfo[]>()
-const storeInfoAllList = ref<StoreInfo[]>()
+const storeInfoList = ref<StoreInfo[]>([])
+const storeInfoAllList = ref<StoreInfo[]>([])
 
-async function fechGenres() {
+async function fetchGenreList() {
+    const genresRef = dbRef(db, 'genres')
+    const genresQuery = query(genresRef, orderByChild('category_id'), equalTo(props.categoryId));
     try {
-        const response = await axios.get(import.meta.env.VITE_APP_BACKEND_BASE_URL +`/genres/category/${props.categoryId}`)
-        selectedGenreList.value = response.data.filter((genre: any) => genre.category_id == props.categoryId) || null
-        selectedGenreList.value.unshift({ id: '0', name: '', category_id: props.categoryId})
-    } catch (error: any) {
-    console.error('Error:', error)
-}}
-async function fechstoreInfos() {
+        const snapshot = await get(genresQuery)
+        if (snapshot.exists()) {
+            const rawData = snapshot.val()
+            // rawDataをCategoryインターフェースの配列に変換
+            genreList.value = Object.keys(rawData).map((key) => ({
+                id: key,
+                name: rawData[key].name,
+                category_id: rawData[key].category_id
+            }))
+            selectedGenreList.value = genreList.value
+            console.log('ジャンル情報を取得しました。')
+        } else {
+            console.log('ジャンル情報が見つかりません。')
+            genreList.value = []
+        }
+    } catch (error) {
+        console.error('Error fetching genres:', error)
+    }
+}
+async function fetchStoreList() {
+    const storesRef = dbRef(db, 'stores')
+    const storesQuery = query(storesRef, orderByChild('category'), equalTo(props.categoryId));
     try {
-        const response = await axios.get(import.meta.env.VITE_APP_BACKEND_BASE_URL + `/stores/category/${props.categoryId}`)
-        storeInfoAllList.value = response.data
-        storeInfoAllList.value.photos = response.data.map((store: any) => {
-            store.photos = store.photos.split(',')
-        })
-        storeInfoList.value = storeInfoAllList.value
-        console.log(storeInfoList.value)
-    } catch (error: any) {
-    console.error('Error:', error)
-}}
+        const snapshot = await get(storesQuery)
+        if (snapshot.exists()) {
+            const rawData = snapshot.val()
+            // rawDataをCategoryインターフェースの配列に変換
+            storeInfoAllList.value = Object.keys(rawData).map((key) => ({
+                id: key,
+                category: rawData[key].category,
+                genre: rawData[key].genre,
+                visitDate: rawData[key].visitDate,
+                nameOfStore: rawData[key].nameOfStore,
+                address: rawData[key].address,
+                totalAmount: rawData[key].totalAmount,
+                contents: rawData[key].contents,
+                photos: rawData[key].photos.split(',')
+            }))
+            storeInfoList.value = storeInfoAllList.value
+            console.log('店舗情報を取得しました。')
+        } else {
+            console.log('店舗情報が見つかりません。')
+            genreList.value = []
+        }
+    } catch (error) {
+        console.error('Error fetching stores:', error)
+    }
+}
+
 
 watch((selectedGenre), () => {
     if (selectedGenre.value !== '0') {
@@ -64,8 +98,8 @@ watch((selectedGenre), () => {
 })
 
 onMounted(() => {
-    fechGenres()
-    fechstoreInfos()
+    fetchGenreList()
+    fetchStoreList()
 })
 </script>
 

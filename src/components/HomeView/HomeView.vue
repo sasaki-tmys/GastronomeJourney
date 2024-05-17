@@ -2,7 +2,7 @@
 import router from '@/router'
 import { ref, onMounted } from 'vue'
 import PostMenu from '@/components/parts/MenuList.vue'
-import axios from 'axios'
+import { getDatabase, ref as dbRef, get } from 'firebase/database'
 
 interface Category {
     id: string
@@ -10,22 +10,38 @@ interface Category {
     category_img: string
     img_name: string
 }
-
+const db = getDatabase()
 const categoryList = ref<Category[]>()
 const clickCategory = (id: any) => {
     router.push(`/category/${id}`)
 }
 
-async function fechCategories() {
+async function fetchCategoryList() {
+    const categoriesRef = dbRef(db, 'categories')
     try {
-        const response = await axios.get('http://localhost:3000/api/categories')
-        categoryList.value = response.data.categories
-    } catch (error: any) {
-    console.error('Error:', error)
-}}
+        const snapshot = await get(categoriesRef)
+        if (snapshot.exists()) {
+            const rawData = snapshot.val()
+            // rawDataをCategoryインターフェースの配列に変換
+            const categories: Category[] = Object.keys(rawData).map((key) => ({
+                id: key,
+                category_name: rawData[key].category_name,
+                category_img: rawData[key].category_img,
+                img_name: rawData[key].img_name
+            }))
+            categoryList.value = categories
+            console.log('カテゴリデータの取得が完了しました。')
+        } else {
+            console.log('カテゴリデータが見つかりません。')
+            categoryList.value = []
+        }
+    } catch (error) {
+        console.error('Error fetching categories:', error)
+    }
+}
 
 onMounted(() => {
-    fechCategories()
+    fetchCategoryList()
 })
 
 </script>

@@ -52,9 +52,6 @@ const onSubmit = () => {
     max-width="600"
     rounded="lg"
 >
-<!-- <div>
-    <v-btn rounded variant="outlined" prepend-icon="">Googleアカウントでログイン</v-btn>
-</div> -->
     <!-- ユーザー名入力欄 -->
     <div class="pt-10 text-subtitle-1 text-medium-emphasis">ユーザー名</div>
     <v-text-field
@@ -106,9 +103,6 @@ const onSubmit = () => {
     color="surface-variant"
     variant="tonal"
     >
-    <v-card-text class="text-medium-emphasis text-caption">
-        テキストレイアウト
-    </v-card-text>
     </v-card>
 
     <v-btn

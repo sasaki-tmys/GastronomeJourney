@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive, watch, onMounted } from 'vue'
-import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { getStorage, uploadBytesResumable, getDownloadURL, ref as firebaseref } from "firebase/storage"
+import { getDatabase, set, update, get, child, push } from 'firebase/database'
+import { ref as dbRef } from 'firebase/database'
 import { v4 as uuidv4 } from 'uuid'
 
 const props = defineProps({
@@ -10,6 +11,7 @@ const props = defineProps({
     categoryId: String
 })
 
+const db = getDatabase()
 const storage = getStorage()
 const router = useRouter()
 
@@ -24,7 +26,7 @@ const file = ref<File>()
 const categoryName = ref('')
 const imageUrl = ref()
 const inputImage = ref()
-const addCategoryDate = reactive(
+const addCategoryData = reactive(
     {
         category_name: '',
         category_img: '',
@@ -36,10 +38,10 @@ const addCategoryDate = reactive(
  * メソッド
  */
 async function onSubmit() {
-    addCategoryDate.category_name = categoryName.value
-    addCategoryDate.img_name = inputImage.value[0].name
+    addCategoryData.category_name = categoryName.value
+    addCategoryData.img_name = inputImage.value[0].name
     await addImg()
-    console.log(addCategoryDate)
+    console.log(addCategoryData)
     if (props.isEdit) {
         updateCategory()
     } else {
@@ -64,7 +66,7 @@ function onFileSelected(e: any) {
 async function addImg() {
     try {
         const url = await uploadImg(file.value)
-        addCategoryDate.category_img = url
+        addCategoryData.category_img = url
         console.log("ファイルがアップロードされ、データが更新されました")
     } catch (error) {
         console.error("アップロード中にエラーが発生しました", error)
@@ -82,31 +84,42 @@ async function uploadImg(file: any) {
 /**
  * APIリクエスト
  */
-async function postCategory() {
+ async function postCategory() {
+    const categoriesRef = dbRef(db, 'categories')
     try {
-        await axios.post(import.meta.env.VITE_APP_BACKEND_BASE_URL + '/categories', addCategoryDate)
+        // Firebaseのキーを自動生成して使用する場合
+        const newPostKey = push(child(categoriesRef, 'categories')).key
+        await set(dbRef(db, 'categories/' + newPostKey), addCategoryData)
         console.log('カテゴリーの登録が完了しました。')
         router.go(-1)
-    } catch(error: any) {
-        console.log(error)
+    } catch (error) {
+        console.error(error)
     }
 }
+
 async function updateCategory() {
     try {
-        await axios.put(import.meta.env.VITE_APP_BACKEND_BASE_URL + `/categories/${props.categoryId}`, addCategoryDate)
+        await update(dbRef(db, `categories/${props.categoryId}`), addCategoryData)
         console.log('カテゴリーの更新が完了しました。')
         router.go(-1)
-    } catch(error: any) {
-        console.log(error)
+    } catch (error) {
+        console.error(error)
     }
 }
+
 async function getCategory() {
+    const categoryRef = dbRef(db, `categories/${props.categoryId}`)
     try {
-        const response = await axios.get(import.meta.env.VITE_APP_BACKEND_BASE_URL + `/categories/${props.categoryId}`)
-        categoryName.value = response.data.category_name
-        imageUrl.value = response.data.category_img
-    } catch(error: any) {
-        console.log(error)
+        const snapshot = await get(categoryRef)
+        if (snapshot.exists()) {
+            const data = snapshot.val()
+            categoryName.value = data.category_name
+            imageUrl.value = data.category_img
+        } else {
+            console.log('No data available')
+        }
+    } catch (error) {
+        console.error(error)
     }
 }
 

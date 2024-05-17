@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import PostMenu from '@/components/parts/MenuList.vue'
-import axios from 'axios'
-
+import { getDatabase, get} from 'firebase/database'
+import { ref as dbRef } from 'firebase/database'
+const db = getDatabase()
 
 const props = defineProps({
     storeId: String
@@ -23,14 +24,23 @@ interface StoreInfo {
 
 const storeInfo = reactive({} as StoreInfo)
 const photoList = ref<string[]>([])
+
 async function fechstoreInfo() {
+    const storesRef = dbRef(db, `stores/${props.storeId}`)
     try {
-        const response = await axios.get(import.meta.env.VITE_APP_BACKEND_BASE_URL + `/stores/${props.storeId}`)
-        Object.assign(storeInfo, response.data)
-        photoList.value = storeInfo.photos.split(',')
-    } catch (error: any) {
-    console.error('Error:', error)
-}}
+        const snapshot = await get(storesRef)
+        const data = snapshot.val()
+        if (snapshot.exists()) {
+            Object.assign(storeInfo, data)
+            photoList.value = storeInfo.photos.split(',')
+            console.log('店舗情報を取得しました。')
+        } else {
+            console.log('店舗情報が見つかりません。')
+        }
+    } catch (error) {
+        console.error('Error fetching stores:', error)
+    }
+}
 
 onMounted(() => {
     fechstoreInfo()
