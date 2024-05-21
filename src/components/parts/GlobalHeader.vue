@@ -3,7 +3,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 const drawer = ref(false)
 const router = useRouter()
-
+import { useAuthStore } from '@/stores/auth'
+const authStore = useAuthStore()
 
 const items = ref([
     {
@@ -13,15 +14,17 @@ const items = ref([
     {
         title: '設定',
         path: '/settings',
-    },
-    {
-        title: 'ログアウト',
-        path: '/login',
-    },
+    }
 ])
 
 const clickCategory = (path: string) => {
     router.push(path)
+}
+async function logout() {
+    const success = await authStore.logout()
+    if (success) {
+        router.push('/login')
+    }
 }
 
 </script>
@@ -31,6 +34,11 @@ const clickCategory = (path: string) => {
         <v-list v-for="item, index in items" :key="index">
             <v-list-item @click="clickCategory(item.path)">
                 <v-list-item-title>{{ item.title }}</v-list-item-title>
+            </v-list-item>
+        </v-list>
+        <v-list v-if="authStore.isLoggedIn">
+            <v-list-item @click="logout()">
+                <v-list-item-title>ログアウト</v-list-item-title>
             </v-list-item>
         </v-list>
     </v-navigation-drawer>

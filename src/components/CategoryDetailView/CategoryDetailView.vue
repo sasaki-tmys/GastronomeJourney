@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import router from '@/router'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import PostMenu from '@/components/parts/MenuList.vue'
 import { getDatabase, query, orderByChild, equalTo, get } from 'firebase/database'
 import { ref as dbRef } from 'firebase/database'
+import { useAuthStore } from '@/stores/auth'
 const db = getDatabase()
+const authStore = useAuthStore()
 
 const props = defineProps({
     categoryId: {type: String, required: true}
@@ -29,6 +31,7 @@ interface StoreInfo {
     photos: string
 }
 
+const isLogined = computed(() => authStore.isLoggedIn)
 const selectedGenreList = ref<Genre[]>([])
 const selectedGenre = ref()
 
@@ -124,7 +127,7 @@ onMounted(() => {
                     </v-card>
                 </v-col>
             </v-row>
-            <PostMenu DisplayContents="Edit" :CategoryId="categoryId" />
+            <PostMenu v-if="isLogined" DisplayContents="Edit" :CategoryId="categoryId" />
         </div>
     </v-container>
 </template>

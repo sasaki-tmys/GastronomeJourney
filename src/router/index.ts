@@ -7,8 +7,7 @@ import AddGenre from '@/views/AddGenre.vue'
 import StoreForm from '@/views/StoreForm.vue'
 import StoreDetaleView from '@/views/StoreDetailView.vue'
 import LoginView from '@/views/LoginView.vue'
-import SginupForm from '@/components/LoginView/SginupForm.vue'
-import { useAuthStore } from '@/stores/auth'
+import SginUpView from '@/views/SginupView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -71,21 +70,8 @@ const router = createRouter({
     {
       path: '/sginup',
       name: 'Sginup',
-      component: SginupForm
+      component: SginUpView
     }
   ]
 })
-
-router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
-
-  const isLoggedIn = localStorage.getItem('isLoggedIn') == 'true'
-  const user = JSON.parse(localStorage.getItem('user') || 'null')
-
-  authStore.setIsLoggedIn(isLoggedIn)
-  authStore.setUser(user)
-
-  next()
-})
-
 export default router

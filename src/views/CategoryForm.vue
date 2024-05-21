@@ -2,6 +2,7 @@
 import { ref, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
 import CategoryForm from '@/components/parts/CategoryForm.vue'
+import GlobalHeader from '@/components/parts/GlobalHeader.vue'
 
 
 const route = useRoute()
@@ -29,6 +30,7 @@ onBeforeMount(() => {
 
 <template>
     <v-main>
+        <GlobalHeader />
         <CategoryForm :isEdit="isEdit" :categoryId="categoryId" />
     </v-main>
 </template>

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import PostMenu from '@/components/parts/MenuList.vue'
 import { getDatabase, get} from 'firebase/database'
 import { ref as dbRef } from 'firebase/database'
+import { useAuthStore } from '@/stores/auth'
 const db = getDatabase()
-
+const authStore = useAuthStore()
 const props = defineProps({
     storeId: String
 })
@@ -21,7 +22,7 @@ interface StoreInfo {
     contents: string
     photos: string
 }
-
+const isLogined = computed(() => authStore.isLoggedIn)
 const storeInfo = reactive({} as StoreInfo)
 const photoList = ref<string[]>([])
 
@@ -59,16 +60,14 @@ onMounted(() => {
             </v-card-item>
             <v-card-item>
                 <div class="editor">
-                <v-no-ssr>
                     <mavon-editor :toolbarsFlag="false" defaultOpen="preview" :subfield="false" class="contents" v-model="storeInfo.contents" language="en" :boxShadow="false" />
-                </v-no-ssr>
                 </div> 
             </v-card-item>
             <v-carousel  v-if="photoList.length" class="image-preview" show-arrows="hover" hide-delimiters>
                 <v-carousel-item v-for="url, index in photoList" :key="index" :src="url" contain />
             </v-carousel>
         </v-card>
-        <PostMenu DisplayContents="Edit" :StoreId="storeId" />
+        <PostMenu v-if="isLogined" DisplayContents="Edit" :StoreId="storeId" />
     </v-container>
 </template>
 
@@ -84,12 +83,6 @@ onMounted(() => {
 }
 :deep(.contents div) {
     background-color: #263238 !important;
-}
-:deep(.content-input-wrapper div) {
-    background-color: #263238 !important;
-}
-:deep(.auto-textarea-input) {
-    color: aliceblue !important;
 }
 :deep(.v-note-wrapper) {
     color: aliceblue !important;

@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import router from '@/router'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import PostMenu from '@/components/parts/MenuList.vue'
 import { getDatabase, ref as dbRef, get } from 'firebase/database'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+const db = getDatabase()
 
 interface Category {
     id: string
@@ -10,7 +14,7 @@ interface Category {
     category_img: string
     img_name: string
 }
-const db = getDatabase()
+const isLogined = computed(() => localStorage.getItem('isLoggedIn'))
 const categoryList = ref<Category[]>()
 const clickCategory = (id: any) => {
     router.push(`/category/${id}`)
@@ -42,6 +46,7 @@ async function fetchCategoryList() {
 
 onMounted(() => {
     fetchCategoryList()
+    console.log(localStorage.getItem('user'), localStorage.getItem('isLoggedIn'))
 })
 
 </script>
@@ -62,7 +67,7 @@ onMounted(() => {
                     </v-card>
                 </v-col>
             </v-row>
-            <PostMenu DisplayContents="Home" />
+            <PostMenu DisplayContents="Home" :isLogined="Boolean(isLogined)" />
         </div>
     </v-container>
 </template>

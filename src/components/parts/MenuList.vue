@@ -5,7 +5,8 @@ import { useRouter } from 'vue-router'
 const props = defineProps({
     DisplayContents: String,
     CategoryId: String,
-    StoreId: String
+    StoreId: String,
+    isLogined: Boolean
 })
 
 const router = useRouter()
@@ -34,12 +35,22 @@ const editStore = ref([
                 </div>
             </template>
             <v-list v-if="DisplayContents == 'Home'">
-                <v-list-item v-for="addItem in addItems" :key="addItem.id" @click="router.push(addItem.path)">
-                    <div class="list-items">
-                        <v-icon class="list-icon" :icon="addItem.icon" />
-                        <v-list-item-title>{{ addItem.title }}</v-list-item-title>
-                    </div>
-                </v-list-item>
+                <span v-if="isLogined">
+                    <v-list-item v-for="addItem in addItems" :key="addItem.id" @click="router.push(addItem.path)">
+                        <div class="list-items">
+                            <v-icon class="list-icon" :icon="addItem.icon" />
+                            <v-list-item-title>{{ addItem.title }}</v-list-item-title>
+                        </div>
+                    </v-list-item>
+                </span>
+                <span v-else>
+                    <v-list-item @click="router.push('/login')">
+                        <div class="list-items">
+                            <v-icon class="list-icon" icon="mdi-login" />
+                            <v-list-item-title>ログイン</v-list-item-title>
+                        </div>
+                    </v-list-item>
+                </span>
             </v-list>
             <v-list v-else-if="DisplayContents == 'Edit' && !props.StoreId">
                 <v-list-item v-for="editItem in editCategory" :key="editItem.id" @click="router.push(editItem.path)">
@@ -71,12 +82,8 @@ const editStore = ref([
     padding: 30px;
 }
 .v-list {
-    /* background-color: transparent !important; */
     margin-right: 10px;
     margin-bottom: 20px;
-}
-.list-icon {
-    /* background-color: transparent !important; */
 }
 .list-items {
     display: flex;

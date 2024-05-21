@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import LoginView from '@/components/LoginView/LoginView.vue'
+import LoginForm from '@/components/AuthenticationView/LoginForm.vue'
 
 </script>
 
 <template>
     <v-main>
-        <LoginView />
+        <LoginForm />
     </v-main>
 </template>

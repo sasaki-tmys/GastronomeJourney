@@ -2,6 +2,7 @@
 import StoreFormView from '@/components/StoreFormView/StoreForm.vue'
 import { ref, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
+import GlobalHeader from '@/components/parts/GlobalHeader.vue'
 
 
 const route = useRoute()
@@ -29,6 +30,7 @@ onBeforeMount(() => {
 
 <template>
     <v-main>
+        <GlobalHeader />
         <StoreFormView :isEdit="isEdit" :storeId="storeId" />
     </v-main>
 </template>
