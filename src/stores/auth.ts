@@ -29,9 +29,8 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('user', JSON.stringify(this.user))
         return true
       } catch (error: any) {
-        const errorCode = error.code
         const errorMessage = error.message
-        console.log(errorCode, errorMessage)
+        alert(JSON.stringify(errorMessage, null, 2))
         return false
       }
     },
