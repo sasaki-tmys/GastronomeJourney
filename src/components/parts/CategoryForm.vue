@@ -39,7 +39,7 @@ const addCategoryData = reactive(
  */
 async function onSubmit() {
     addCategoryData.category_name = categoryName.value
-    addCategoryData.img_name = inputImage.value[0].name
+    addCategoryData.img_name = inputImage.value.name
     await addImg()
     console.log(addCategoryData)
     if (props.isEdit) {
@@ -76,8 +76,13 @@ async function addImg() {
 async function uploadImg(file: any) {
     const id = uuidv4()
     const storageRef = firebaseref(storage, `images/categories/${id}`)
-    const uploadTask = await uploadBytesResumable(storageRef, file)
-    return getDownloadURL(uploadTask.ref)
+    try {
+        const uploadTask = await uploadBytesResumable(storageRef, file)
+        return getDownloadURL(uploadTask.ref)
+    } catch(error: any) {
+        alert(JSON.stringify(error, null, 2))
+        return ''
+    }
 }
 
 
@@ -93,6 +98,7 @@ async function uploadImg(file: any) {
         console.log('カテゴリーの登録が完了しました。')
         router.go(-1)
     } catch (error) {
+        alert(JSON.stringify(error, null, 2))
         console.error(error)
     }
 }
