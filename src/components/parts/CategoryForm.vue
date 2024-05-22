@@ -116,7 +116,7 @@ async function getCategory() {
             categoryName.value = data.category_name
             imageUrl.value = data.category_img
         } else {
-            console.log('No data available')
+            console.log('データがないよ〜')
         }
     } catch (error) {
         console.error(error)

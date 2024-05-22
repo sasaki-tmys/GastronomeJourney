@@ -30,7 +30,6 @@ const passwordValidation = yup.string().test(
     }
 )
 const schema = yup.object({
-    username: yup.string().required('名前は必須でっせ').max(32, '32文字以内にしてくだせぇ'),
     email: yup.string().email('有効なメールアドレスを入力してください').required('メールアドレスは必須です'),
     password: passwordValidation.required('パスワードは必須でっせ')
 })
@@ -39,18 +38,15 @@ const { errors, handleSubmit } = useForm({
     validationSchema: schema,
 })
 
-const { value: username } = useField<string>('username')
 const { value: password } = useField<string>('password')
 const { value: email } = useField<string>('email')
 
 const onSubmit = handleSubmit(async (values) => {
     const success = await authStore.login(values.email, values.password)
-    console.log('success', success)
     if (success) {
         router.push('/')
     }
 })
-console.log('localStorage', localStorage.getItem('user'), localStorage.getItem('isLoggedIn'))
 </script>
 
 <template>
@@ -58,17 +54,9 @@ console.log('localStorage', localStorage.getItem('user'), localStorage.getItem('
         <v-img class="mx-auto mb-5" width="150px" height="150px" src="src/assets/logo.png" />
         <v-card class="mx-auto pa-12 pb-8" elevation="8" max-width="600" rounded="lg">
             <v-form @submit.prevent="onSubmit">
-                <!-- ユーザー名入力欄 -->
-                <div class="text-subtitle-1 text-medium-emphasis">ユーザー名</div>
-                <v-text-field
-                    density="compact"
-                    placeholder="ユーザー名"
-                    variant="outlined"
-                    id="username"
-                    name="username"
-                    v-model="username"
-                ></v-text-field>
-                <div class="error" v-if="errors.username">{{ errors.username }}</div>
+                <div class="pb-4">
+                    <router-link to="/" >ログインせずに見る</router-link>
+                </div>
                 <!-- メールアドレスの入力欄 -->
                 <div class="text-subtitle-1 text-medium-emphasis">メールアドレス</div>
                 <v-text-field
@@ -83,7 +71,7 @@ console.log('localStorage', localStorage.getItem('user'), localStorage.getItem('
                 <!-- パスワード入力欄 -->
                 <div class="text-subtitle-1 text-medium-emphasis d-flex align-center justify-space-between">パスワード
                 <a class="text-caption text-decoration-none text-blue" href="#" rel="noopener noreferrer" target="_blank">
-                    Forgot login password?
+                    パスワードを忘れただと？
                 </a>
                 </div>
                 <v-text-field

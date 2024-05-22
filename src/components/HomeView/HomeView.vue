@@ -3,9 +3,7 @@ import router from '@/router'
 import { ref, onMounted, computed } from 'vue'
 import PostMenu from '@/components/parts/MenuList.vue'
 import { getDatabase, ref as dbRef, get } from 'firebase/database'
-import { useAuthStore } from '@/stores/auth'
 
-const authStore = useAuthStore()
 const db = getDatabase()
 
 interface Category {
@@ -46,7 +44,6 @@ async function fetchCategoryList() {
 
 onMounted(() => {
     fetchCategoryList()
-    console.log(localStorage.getItem('user'), localStorage.getItem('isLoggedIn'))
 })
 
 </script>

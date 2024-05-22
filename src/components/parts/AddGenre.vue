@@ -13,7 +13,6 @@ interface Category {
     category_image: string,
     img_name: string
 }
-
 const categoryList = ref<Category[]>()
 
 const genreName = ref('')
@@ -25,6 +24,7 @@ const addGenreData = reactive(
         category_id: ''
     }
 )
+
 const onSubmit = () => {
     addGenreData.name = genreName.value
     addGenreData.category_id = categoryId.value

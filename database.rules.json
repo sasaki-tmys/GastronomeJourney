@@ -1,0 +1,18 @@
+{
+  "rules": {
+    ".read": "auth != null || auth == null",
+    ".write": "auth != null",
+    "users": {
+      "$uid": {
+        ".read": true,
+        ".write": "$uid === auth.uid"
+      }
+    },
+      "genres": {
+      ".indexOn": ["category_id"] // インデックスを設定するフィールド
+    },
+      "stores": {
+        ".indexOn": ["category"]
+      }
+  }
+}

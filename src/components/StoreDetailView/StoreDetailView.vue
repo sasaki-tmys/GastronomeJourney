@@ -3,9 +3,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import PostMenu from '@/components/parts/MenuList.vue'
 import { getDatabase, get} from 'firebase/database'
 import { ref as dbRef } from 'firebase/database'
-import { useAuthStore } from '@/stores/auth'
 const db = getDatabase()
-const authStore = useAuthStore()
 const props = defineProps({
     storeId: String
 })
@@ -22,7 +20,7 @@ interface StoreInfo {
     contents: string
     photos: string
 }
-const isLogined = computed(() => authStore.isLoggedIn)
+const isLogined = computed(() => localStorage.getItem('isLoggedIn'))
 const storeInfo = reactive({} as StoreInfo)
 const photoList = ref<string[]>([])
 

@@ -4,14 +4,13 @@ import { ref, onMounted, watch, computed } from 'vue'
 import PostMenu from '@/components/parts/MenuList.vue'
 import { getDatabase, query, orderByChild, equalTo, get } from 'firebase/database'
 import { ref as dbRef } from 'firebase/database'
-import { useAuthStore } from '@/stores/auth'
 const db = getDatabase()
-const authStore = useAuthStore()
 
 const props = defineProps({
     categoryId: {type: String, required: true}
 })
 const genreList = ref<Genre[]>([])
+const isLogined = computed(() => localStorage.getItem('isLoggedIn'))
 
 interface Genre {
     id: string
@@ -31,7 +30,6 @@ interface StoreInfo {
     photos: string
 }
 
-const isLogined = computed(() => authStore.isLoggedIn)
 const selectedGenreList = ref<Genre[]>([])
 const selectedGenre = ref()
 

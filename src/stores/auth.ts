@@ -23,7 +23,6 @@ export const useAuthStore = defineStore('auth', {
     async login(email: string, password: string) {
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password)
-        console.log('loginData', userCredential)
         this.user = userCredential.user
         this.isLoggedIn = true
         localStorage.setItem('isLoggedIn', 'true')
@@ -39,7 +38,6 @@ export const useAuthStore = defineStore('auth', {
     async sginUp(email: string, password: string, username: string): Promise<boolean> {
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-        console.log('sginUpData', userCredential)
         this.user = userCredential.user
         await updateProfile(this.user, {
           displayName: username
@@ -55,7 +53,7 @@ export const useAuthStore = defineStore('auth', {
       } catch (error: any) {
         const errorCode = error.code
         const errorMessage = error.message
-        console.log({ errorCode, errorMessage })
+        console.log(errorCode, errorMessage)
 
         return false
       }

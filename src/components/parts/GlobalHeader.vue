@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 const drawer = ref(false)
 const router = useRouter()
@@ -16,6 +16,7 @@ const items = ref([
         path: '/settings',
     }
 ])
+const isLogined = computed(() => localStorage.getItem('isLoggedIn'))
 
 const clickCategory = (path: string) => {
     router.push(path)
@@ -36,7 +37,7 @@ async function logout() {
                 <v-list-item-title>{{ item.title }}</v-list-item-title>
             </v-list-item>
         </v-list>
-        <v-list v-if="authStore.isLoggedIn">
+        <v-list v-if="isLogined">
             <v-list-item @click="logout()">
                 <v-list-item-title>ログアウト</v-list-item-title>
             </v-list-item>

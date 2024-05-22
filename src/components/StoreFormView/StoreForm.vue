@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { ref, onMounted, watch, reactive } from 'vue'
+import { ref, onMounted, watch, reactive, computed } from 'vue'
 import { getStorage, uploadBytesResumable, getDownloadURL, deleteObject, ref as firebaseref } from "firebase/storage"
 import { getDatabase, set, update, get, child, push, remove } from 'firebase/database'
 import { ref as dbRef } from 'firebase/database'
 import { v4 as uuidv4 } from 'uuid'
+import * as yup from 'yup'
+import { useField, useForm } from 'vee-validate'
 
 const props = defineProps({
     isEdit: Boolean,
@@ -35,7 +37,23 @@ const customToolbars = {
         htmlcode: true, // HTMLコード表示
         preview: true,
     }
+const initialValue = ({
+    nameOfStore: '',
+    visitDate: new Date,
+    selectCategory: null,
+    selectGenre: null,
+    address: '',
+    totalAmount: null,
+    contents: 
+`### たべたもの
+- 
 
+### のんだもの
+- 
+
+### その他
+- `
+})
 const db = getDatabase()
 const storage = getStorage()
 const router = useRouter()
@@ -46,83 +64,115 @@ const router = useRouter()
 
 // 初期フォーカス位置の指定
 const initialFocus = ref()
-
-const visitDate = ref(new Date)
-const nameOfStore = ref('')
-const address = ref('')
-const totalAmount = ref()
-const contents = ref(
-`### たべたもの
-- 
-
-### のんだもの
-- 
-
-### その他
-- `
-)
 const categoryList = ref<Category[]>()
-const selectCategory = ref()
 const genreList = ref<Genre[]>([])
 const filterGenreList = ref<Genre[]>([])
-const selectGenre = ref()
 const inputImage = ref([])
 const imageUrls = ref<string[]>([])
 const addStoreData = reactive({
-    category: 0,
-    genre: 0,
-    visitDate: '',
     nameOfStore: '',
+    category: '',
+    genre: '',
+    visitDate: '',
     address: '',
     totalAmount: 0,
     contents: '',
     photos: '',
 })
+
 const files = ref<FileList>()
 
 /**
  * メソッド
  */
 
-function onFileSelected(e: any) {
-    files.value = e.target.files as FileList
-    if (files.value) {
-        imageUrls.value = []
-        for (const file of files.value) {
+const schema = yup.object({
+    nameOfStore: yup.string().required('店名は必須です。'),
+    address: yup.string().required('住所は必須です。'),
+    totalAmount: yup.string().required('金額は必須です。'),
+    selectCategory: yup.string().required('カテゴリーは必須です。'),
+    selectGenre: yup.string().required('ジャンルは必須です。'),
+})
+
+const { errors, handleSubmit } = useForm({
+    validationSchema: schema,
+    initialValues: initialValue
+})
+
+const { value: nameOfStore } = useField<string>('nameOfStore')
+const { value: visitDate } = useField<Date>('visitDate')
+const { value: selectCategory } = useField<string>('selectCategory')
+const { value: selectGenre } = useField<string|null>('selectGenre')
+const { value: address } = useField<string>('address')
+const { value: totalAmount } = useField<number>('totalAmount')
+const { value: contents } = useField<string>('contents')
+
+// 日付を yyyy-MM-dd 形式にフォーマットする関数
+function formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function onFileSelected(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (input.files) {
+        files.value = input.files;
+        imageUrls.value = [];
+        const fileReaders = Array.from(files.value).map((file) => {
             if (file.type.startsWith('image/')) {
-                const reader = new FileReader()
-                reader.onload = (e) => {
-                    if (e.target?.result) {
-                        imageUrls.value.push(e.target.result as string)
-                    }
-                }
-                reader.readAsDataURL(file)
+                return new Promise<void>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        if (event.target?.result) {
+                            imageUrls.value.push(event.target.result as string);
+                        }
+                        resolve();
+                    };
+                    reader.readAsDataURL(file);
+                });
             }
-        }
+        });
+
+        Promise.all(fileReaders).then(() => {
+            console.log('files.value', files.value);
+            console.log('imageUrls.value', imageUrls.value);
+        });
     }
 }
 
-async function onSubmit() {
-    addStoreData.nameOfStore = nameOfStore.value
-    addStoreData.category = selectCategory.value
-    addStoreData.genre = selectGenre.value
-    addStoreData.visitDate = visitDate.value.toString()
-    addStoreData.address = address.value
-    addStoreData.totalAmount = totalAmount.value
-    addStoreData.contents = contents.value
-    await addImg()
+const formattedDate = computed({
+    get() {
+        return visitDate.value ? formatDate(visitDate.value) : '';
+    },
+    set(newDate: string) {
+        visitDate.value = new Date(newDate);
+    }
+})
+
+const onSubmit = handleSubmit(async (values) => {
+    addStoreData.nameOfStore = values.nameOfStore
+    addStoreData.category = values.selectCategory ? values.selectCategory : ''
+    addStoreData.genre = values.selectGenre ? values.selectGenre : ''
+    addStoreData.visitDate = formattedDate.value
+    addStoreData.address = values.address
+    addStoreData.totalAmount = values.totalAmount ? values.totalAmount : 0
+    addStoreData.contents = values.contents
     console.log(addStoreData)
     if (props.isEdit) {
         updateStore()
     } else {
+        await addImg()
         postStore()
     }
-}
+})
 
 /**
  * 非同期メソッド
  */
 
+// 画像をアップロードするメソッド
 async function addImg() {
     try {
         const urls = await uploadImages(files.value)
@@ -132,21 +182,21 @@ async function addImg() {
         console.error("アップロード中にエラーが発生しました", error)
     }
 }
-async function uploadImages(files: FileList | undefined) {
-    const urls = []
+
+// 画像を並列でアップロードするメソッド
+async function uploadImages(files: FileList | undefined): Promise<string> {
     if (files === undefined) {
         return ''
     } else {
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i]
-            if (file) {
-                const id = uuidv4()
-                const storageRef = firebaseref(storage, `images/stores/${id}`)
-                const uploadTask = await uploadBytesResumable(storageRef, file)
-                const url = await getDownloadURL(uploadTask.ref)
-                urls.push(url)
-            }
-        }
+        const uploadPromises = Array.from(files).map(async (file) => {
+            const id = uuidv4()
+            const storageRef = firebaseref(storage, `images/stores/${id}`)
+            const uploadTask = await uploadBytesResumable(storageRef, file)
+            const url = await getDownloadURL(uploadTask.ref)
+            return url
+        })
+
+        const urls = await Promise.all(uploadPromises)
         return urls.join(',')
     }
 }
@@ -225,16 +275,18 @@ async function getStore() {
     try {
         const snapshot = await get(storesRef)
         const data = snapshot.val()
+        console.log(data)
         if (snapshot.exists()) {
             nameOfStore.value = data.nameOfStore
             selectCategory.value = data.category
-            visitDate.value = data.visitDate
+            formattedDate.value = data.visitDate
             address.value = data.address
             totalAmount.value = data.totalAmount
             contents.value = data.contents
             fetchFilterGenreList(data.genre)
             selectGenre.value = data.genre
             imageUrls.value = data.photos.split(',')
+            addStoreData.photos = data.photos
             console.log('店舗情報を取得しました。')
         } else {
             console.log('店舗情報が見つかりません。')
@@ -276,7 +328,6 @@ async function deleteStore() {
         if (snapshot.exists()) {
             const storeData = snapshot.val()
             const imageUrls = storeData.photos.split(',')
-            console.log('imageUrl', Array.isArray(imageUrls), imageUrls.length)
             // データベースからストア情報を削除
             await remove(storeRef)
 
@@ -317,6 +368,7 @@ watch(selectCategory, () => {
 watch(inputImage, () => {
     if (imageUrls.value) {
         imageUrls.value = []
+        files.value = undefined
     }
 })
 
@@ -339,11 +391,16 @@ onMounted(() => {
     <v-container>
         <v-form @submit.prevent="onSubmit">
             <v-text-field type="text" placeholder="店名" variant="outlined" v-model="nameOfStore" ref="initialFocus" />
-            <v-text-field type="date" placeholder="訪問日" variant="outlined" v-model="visitDate" />
+            <div class="error" v-if="errors.nameOfStore">{{ errors.nameOfStore }}</div>
+            <v-text-field type="date" placeholder="訪問日" variant="outlined" v-model="formattedDate" />
             <v-select :class="{readonly: props.isEdit}" :items="categoryList" item-title="category_name" item-value="id" variant="outlined" placeholder="カテゴリー" v-model="selectCategory" />
+            <div class="error" v-if="errors.selectCategory">{{ errors.selectCategory }}</div>
             <v-select :class="{readonly: props.isEdit}" :items="filterGenreList" item-title="name" item-value="id" variant="outlined" placeholder="ジャンル" v-model="selectGenre" />
+            <div class="error" v-if="errors.selectGenre">{{ errors.selectGenre }}</div>
             <v-text-field type="text" placeholder="住所" variant="outlined" v-model="address" />
+            <div class="error" v-if="errors.address">{{ errors.address }}</div>
             <v-text-field type="number" placeholder="金額" variant="outlined" v-model="totalAmount" />
+            <div class="error" v-if="errors.totalAmount">{{ errors.totalAmount }}</div>
             <div class="editor">
                 <v-no-ssr>
                     <mavon-editor :toolbars="customToolbars" :subfield="false" defaultOpen="edit" class="contents" v-model="contents" language="en" :boxShadow="false" />
@@ -354,7 +411,7 @@ onMounted(() => {
             <v-carousel  v-if="imageUrls.length" class="image-preview" show-arrows="hover" >
                 <v-carousel-item v-for="(url, index) in imageUrls" :key="index" :src="url" contain />
             </v-carousel>
-            <v-btn class="mt-10" type="submit" variant="outlined" :text="isEdit ? '編集する' : '投稿する'" />
+            <v-btn class="mt-10" type="submit" :disabled="Object.keys(errors).length > 0" variant="outlined" :text="isEdit ? '編集する' : '投稿する'" />
             <v-btn v-if="isEdit" class="mt-10 ml-10" variant="outlined" text="削除する" @click="deleteStore()" />
         </v-form>
     </v-container>
@@ -378,5 +435,10 @@ onMounted(() => {
 }
 .readonly {
     pointer-events: none;
+}
+.error {
+    color: red;
+    font-size: 14px;
+    margin-bottom: 12px;
 }
 </style>
