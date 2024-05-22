@@ -51,7 +51,7 @@ const onSubmit = handleSubmit(async (values) => {
 
 <template>
     <v-container>
-        <v-img class="mx-auto mb-5" width="150px" height="150px" src="src/assets/logo.png" />
+        <v-img class="mx-auto mb-5" width="150px" height="150px" src="/logo.png"/>
         <v-card class="mx-auto pa-12 pb-8" elevation="8" max-width="600" rounded="lg">
             <v-form @submit.prevent="onSubmit">
                 <div class="pb-4">
