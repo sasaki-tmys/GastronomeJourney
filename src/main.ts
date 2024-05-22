@@ -13,9 +13,14 @@ import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
+import mavonEditor from 'mavon-editor'
+import 'mavon-editor/dist/css/index.css'
+
+import '@/plugins/firebase'
+
 const vuetify = createVuetify({
   theme: {
-    defaultTheme: 'light',
+    defaultTheme: 'dark',
     themes: {
       // https://vuetifyjs.com/en/styles/colors/#material-colors
       light: {
@@ -57,6 +62,7 @@ const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
+app.use(mavonEditor)
 app.use(vuetify)
 
 app.mount('#app')
