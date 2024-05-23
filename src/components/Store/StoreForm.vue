@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * import
+ */
 import { useRouter } from 'vue-router'
 import { ref, onMounted, watch, reactive, computed } from 'vue'
 import { getStorage, uploadBytesResumable, getDownloadURL, deleteObject, ref as firebaseref } from "firebase/storage"
@@ -7,27 +10,59 @@ import { ref as dbRef } from 'firebase/database'
 import { v4 as uuidv4 } from 'uuid'
 import * as yup from 'yup'
 import { useField, useForm } from 'vee-validate'
+import type { Category, Genre } from '@/types/models.d.ts'
 
+/**
+ * props
+ */
 const props = defineProps({
-    isEdit: Boolean,
-    storeId: String
+    isEdit: {
+        type: Boolean,
+        required: true
+    },
+    storeId: {
+        type: String,
+        required: false
+    }
 })
-interface Category {
-    id: string,
-    category_name: string
-    category_image: string,
-    img_name: string
-}
-interface Genre {
-    id: string
-    name: string
-    category_id: string
-}
+
+/**
+ * emit
+ */
+
+/**
+ * リアクティブ
+ */
+// 初期フォーカス位置の指定
+const initialFocus = ref()
+const categoryList = ref<Category[]>()
+const genreList = ref<Genre[]>([])
+const filterGenreList = ref<Genre[]>([])
+const inputImage = ref<File>()
+const imageUrls = ref<string[]>([])
+const addStoreData = reactive({
+    nameOfStore: '',
+    category: '',
+    genre: '',
+    visitDate: '',
+    address: '',
+    totalAmount: 0,
+    contents: '',
+    photos: '',
+})
+const files = ref<FileList>()
 
 /**
  * 変数
  */
+// firebaseのDB
+const db = getDatabase()
+// firebaseのstorage
+const storage = getStorage()
+// ルーター
+const router = useRouter()
 
+// マークダウンエディターのオプション
 const customToolbars = {
         bold: true, // 太字
         header: true, // 見出し
@@ -36,7 +71,8 @@ const customToolbars = {
         fullscreen: true, // フルスクリーン
         htmlcode: true, // HTMLコード表示
         preview: true,
-    }
+}
+// 初期値
 const initialValue = ({
     nameOfStore: '',
     visitDate: new Date,
@@ -54,38 +90,7 @@ const initialValue = ({
 ### その他
 - `
 })
-const db = getDatabase()
-const storage = getStorage()
-const router = useRouter()
-
-/**
- * リアクティブ変数
- */
-
-// 初期フォーカス位置の指定
-const initialFocus = ref()
-const categoryList = ref<Category[]>()
-const genreList = ref<Genre[]>([])
-const filterGenreList = ref<Genre[]>([])
-const inputImage = ref([])
-const imageUrls = ref<string[]>([])
-const addStoreData = reactive({
-    nameOfStore: '',
-    category: '',
-    genre: '',
-    visitDate: '',
-    address: '',
-    totalAmount: 0,
-    contents: '',
-    photos: '',
-})
-
-const files = ref<FileList>()
-
-/**
- * メソッド
- */
-
+// バリデーション定義
 const schema = yup.object({
     nameOfStore: yup.string().required('店名は必須です。'),
     address: yup.string().required('住所は必須です。'),
@@ -98,7 +103,7 @@ const { errors, handleSubmit } = useForm({
     validationSchema: schema,
     initialValues: initialValue
 })
-
+// 項目定義
 const { value: nameOfStore } = useField<string>('nameOfStore')
 const { value: visitDate } = useField<Date>('visitDate')
 const { value: selectCategory } = useField<string>('selectCategory')
@@ -107,6 +112,9 @@ const { value: address } = useField<string>('address')
 const { value: totalAmount } = useField<number>('totalAmount')
 const { value: contents } = useField<string>('contents')
 
+/**
+ * 変数(メソッド)
+ */
 // 日付を yyyy-MM-dd 形式にフォーマットする関数
 function formatDate(date: Date): string {
     const year = date.getFullYear();
@@ -114,7 +122,7 @@ function formatDate(date: Date): string {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 }
-
+// ファイル選択時の整形
 function onFileSelected(e: Event) {
     const input = e.target as HTMLInputElement;
     if (input.files) {
@@ -141,16 +149,7 @@ function onFileSelected(e: Event) {
         });
     }
 }
-
-const formattedDate = computed({
-    get() {
-        return visitDate.value ? formatDate(visitDate.value) : '';
-    },
-    set(newDate: string) {
-        visitDate.value = new Date(newDate);
-    }
-})
-
+// 登録、更新ボタン押下時の処理
 const onSubmit = handleSubmit(async (values) => {
     addStoreData.nameOfStore = values.nameOfStore
     addStoreData.category = values.selectCategory ? values.selectCategory : ''
@@ -169,41 +168,36 @@ const onSubmit = handleSubmit(async (values) => {
 })
 
 /**
- * 非同期メソッド
+ * watch
  */
-
-// 画像をアップロードするメソッド
-async function addImg() {
-    try {
-        const urls = await uploadImages(files.value)
-        addStoreData.photos = urls
-        console.log("ファイルがアップロードされ、データが更新されました")
-    } catch (error) {
-        console.error("アップロード中にエラーが発生しました", error)
+// カテゴリー変更を監視
+watch(selectCategory, () => {
+    selectGenre.value = null
+    filterGenreList.value = genreList.value.filter((genre: any) => genre.category_id === selectCategory.value) || null
+})
+// 画像変更を監視
+watch(inputImage, () => {
+    if (imageUrls.value) {
+        imageUrls.value = []
+        files.value = undefined
     }
-}
-
-// 画像を並列でアップロードするメソッド
-async function uploadImages(files: FileList | undefined): Promise<string> {
-    if (files === undefined) {
-        return ''
-    } else {
-        const uploadPromises = Array.from(files).map(async (file) => {
-            const id = uuidv4()
-            const storageRef = firebaseref(storage, `images/stores/${id}`)
-            const uploadTask = await uploadBytesResumable(storageRef, file)
-            const url = await getDownloadURL(uploadTask.ref)
-            return url
-        })
-
-        const urls = await Promise.all(uploadPromises)
-        return urls.join(',')
-    }
-}
-
+})
 /**
- * APIリクエスト
+ * computed
  */
+// 訪問日の整形
+const formattedDate = computed({
+    get() {
+        return visitDate.value ? formatDate(visitDate.value) : '';
+    },
+    set(newDate: string) {
+        visitDate.value = new Date(newDate);
+    }
+})
+/**
+ * メソッド
+ */
+// カテゴリー情報の取得
 async function fetchCategoryList() {
     const categoriesRef = dbRef(db, 'categories')
     try {
@@ -214,7 +208,7 @@ async function fetchCategoryList() {
             const categories: Category[] = Object.keys(rawData).map((key) => ({
                 id: key,
                 category_name: rawData[key].category_name,
-                category_image: rawData[key].category_image,
+                category_img: rawData[key].category_image,
                 img_name: rawData[key].img_name
             }))
             categoryList.value = categories
@@ -227,6 +221,7 @@ async function fetchCategoryList() {
         console.error('Error fetching categories:', error)
     }
 }
+// ジャンル情報の取得
 async function fetchGenreList() {
     const genresRef = dbRef(db, 'genres')
     try {
@@ -250,7 +245,7 @@ async function fetchGenreList() {
         console.error('Error fetching genres:', error)
     }
 }
-
+// 編集時のジャンル情報を取得
 async function fetchFilterGenreList(genre: string) {
     const genresRef = dbRef(db, `genres/${genre}`)
     try {
@@ -355,22 +350,39 @@ async function deleteStore() {
     }
 }
 
-
-
 /**
- * watchメソッド
+ * 非同期メソッド
  */
 
-watch(selectCategory, () => {
-    selectGenre.value = null
-    filterGenreList.value = genreList.value.filter((genre: any) => genre.category_id === selectCategory.value) || null
-})
-watch(inputImage, () => {
-    if (imageUrls.value) {
-        imageUrls.value = []
-        files.value = undefined
+// 画像をアップロードするメソッド
+async function addImg() {
+    try {
+        const urls = await uploadImages(files.value)
+        addStoreData.photos = urls
+        console.log("ファイルがアップロードされ、データが更新されました")
+    } catch (error) {
+        console.error("アップロード中にエラーが発生しました", error)
     }
-})
+}
+
+// 画像を並列でアップロードするメソッド
+async function uploadImages(files: FileList | undefined): Promise<string> {
+    if (files === undefined) {
+        return ''
+    } else {
+        const uploadPromises = Array.from(files).map(async (file) => {
+            const id = uuidv4()
+            const storageRef = firebaseref(storage, `images/stores/${id}`)
+            const uploadTask = await uploadBytesResumable(storageRef, file)
+            const url = await getDownloadURL(uploadTask.ref)
+            return url
+        })
+
+        const urls = await Promise.all(uploadPromises)
+        return urls.join(',')
+    }
+}
+
 
 /**
  * ライフサイクル

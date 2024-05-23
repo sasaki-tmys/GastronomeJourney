@@ -1,29 +1,54 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import PostMenu from '@/components/parts/MenuList.vue'
+/**
+ * import
+ */
+import { ref, reactive, onBeforeMount, computed } from 'vue'
+import PostMenu from '@/components/Common/MenuList.vue'
 import { getDatabase, get} from 'firebase/database'
 import { ref as dbRef } from 'firebase/database'
-const db = getDatabase()
+import type {  Store } from '@/types/models.d.ts'
+/**
+ * props
+ */
+
 const props = defineProps({
-    storeId: String
+    storeId: {
+        type: String,
+        required: true
+    }
 })
+/**
+ * emit
+ */
 
-// 店舗情報型定義
-interface StoreInfo {
-    id: number
-    category: number
-    genre: number
-    visitDate: string
-    nameOfStore: string
-    address: string
-    totalAmount: number
-    contents: string
-    photos: string
-}
-const isLogined = computed(() => localStorage.getItem('isLoggedIn'))
-const storeInfo = reactive({} as StoreInfo)
+/**
+ * リアクティブ
+ */
+const storeInfo = reactive({} as Store)
 const photoList = ref<string[]>([])
+const formatAmount = ref<string>('')
+/**
+ * 変数
+ */
+const db = getDatabase()
 
+/**
+ * 変数(メソッド)
+ */
+
+/**
+ * watch
+ */
+
+/**
+ * computed
+ */
+const isLogined = computed(() => localStorage.getItem('isLoggedIn'))
+
+/**
+ * メソッド
+ */
+// 店舗情報の取得
 async function fechstoreInfo() {
     const storesRef = dbRef(db, `stores/${props.storeId}`)
     try {
@@ -32,6 +57,7 @@ async function fechstoreInfo() {
         if (snapshot.exists()) {
             Object.assign(storeInfo, data)
             photoList.value = storeInfo.photos.split(',')
+            formatAmount.value = Number(storeInfo.totalAmount).toLocaleString()
             console.log('店舗情報を取得しました。')
         } else {
             console.log('店舗情報が見つかりません。')
@@ -40,8 +66,10 @@ async function fechstoreInfo() {
         console.error('Error fetching stores:', error)
     }
 }
-
-onMounted(() => {
+/**
+ * ライフサイクル
+ */
+onBeforeMount(() => {
     fechstoreInfo()
 })
 
@@ -52,7 +80,7 @@ onMounted(() => {
         <v-card flat>
             <v-card-title>{{ storeInfo.nameOfStore }}</v-card-title>
             <v-card-subtitle>{{ '訪問日：' + storeInfo.visitDate }}</v-card-subtitle>
-            <v-card-subtitle>{{ '予算：' + storeInfo.totalAmount + '円' }}</v-card-subtitle>
+            <v-card-subtitle>{{ '予算：' + formatAmount + '円' }}</v-card-subtitle>
             <v-card-item>
                 <span>住所：</span><a :href="`https://www.google.com/maps/search/${storeInfo.nameOfStore}`" target="_blank">{{ storeInfo.address }}</a>
             </v-card-item>

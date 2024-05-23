@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { ref, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
-import CategoryForm from '@/components/parts/CategoryForm.vue'
-import GlobalHeader from '@/components/parts/GlobalHeader.vue'
-
+import CategoryForm from '@/components/Category/CategoryForm.vue'
+import GlobalHeader from '@/components/Common/GlobalHeader.vue'
 
 const route = useRoute()
 const isEdit = ref<boolean>(false)
@@ -31,6 +30,6 @@ onBeforeMount(() => {
 <template>
     <v-main>
         <GlobalHeader />
-        <CategoryForm :isEdit="isEdit" :categoryId="categoryId" />
+        <CategoryForm :is-edit="isEdit" :category-id="categoryId" />
     </v-main>
 </template>

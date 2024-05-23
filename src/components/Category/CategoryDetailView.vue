@@ -1,41 +1,65 @@
 <script setup lang="ts">
+/**
+ * import
+ */
 import router from '@/router'
 import { ref, onMounted, watch, computed } from 'vue'
-import PostMenu from '@/components/parts/MenuList.vue'
+import PostMenu from '@/components/Common/MenuList.vue'
 import { getDatabase, query, orderByChild, equalTo, get } from 'firebase/database'
 import { ref as dbRef } from 'firebase/database'
-const db = getDatabase()
+import type { Genre, Store } from '@/types/models.d.ts'
 
+/**
+ * props
+ */
 const props = defineProps({
     categoryId: {type: String, required: true}
 })
+
+/**
+ * emit
+ */
+
+/**
+ * リアクティブ
+ */
+
 const genreList = ref<Genre[]>([])
+const selectedGenreList = ref<Genre[]>([])
+const selectedGenre = ref<string>('')
+const storeInfoList = ref<Store[]>([])
+const storeInfoAllList = ref<Store[]>([])
+/**
+ * 変数
+ */
+// firebaseのDB
+const db = getDatabase()
+
+/**
+ * 変数(メソッド)
+ */
+
+/**
+ * watch
+ */
+watch((selectedGenre), () => {
+    if (selectedGenre.value !== '0') {
+        storeInfoList.value = storeInfoAllList.value.filter((storeInfo: any) => storeInfo.genre == selectedGenre.value) || null
+    } else {
+        storeInfoList.value = storeInfoAllList.value
+    }
+})
+
+/**
+ * computed
+ */
+// ログイン状態の取得
 const isLogined = computed(() => localStorage.getItem('isLoggedIn'))
 
-interface Genre {
-    id: string
-    name: string
-    category_id: string
-}
-// 店舗情報型定義
-interface StoreInfo {
-    id: string
-    category: string
-    genre: string
-    visitDate: string
-    nameOfStore: string
-    address: string
-    totalAmount: number
-    contents: string
-    photos: string
-}
-
-const selectedGenreList = ref<Genre[]>([])
-const selectedGenre = ref()
-
-const storeInfoList = ref<StoreInfo[]>([])
-const storeInfoAllList = ref<StoreInfo[]>([])
-
+/**
+ * メソッド
+ */
+// ジャンル情報の取得
 async function fetchGenreList() {
     const genresRef = dbRef(db, 'genres')
     const genresQuery = query(genresRef, orderByChild('category_id'), equalTo(props.categoryId));
@@ -59,6 +83,7 @@ async function fetchGenreList() {
         console.error('Error fetching genres:', error)
     }
 }
+// 
 async function fetchStoreList() {
     const storesRef = dbRef(db, 'stores')
     const storesQuery = query(storesRef, orderByChild('category'), equalTo(props.categoryId));
@@ -89,14 +114,9 @@ async function fetchStoreList() {
     }
 }
 
-
-watch((selectedGenre), () => {
-    if (selectedGenre.value !== '0') {
-        storeInfoList.value = storeInfoAllList.value.filter((storeInfo: any) => storeInfo.genre == selectedGenre.value) || null
-    } else {
-        storeInfoList.value = storeInfoAllList.value
-    }
-})
+/**
+ * ライフサイクル
+ */
 
 onMounted(() => {
     fetchGenreList()
@@ -125,7 +145,7 @@ onMounted(() => {
                     </v-card>
                 </v-col>
             </v-row>
-            <PostMenu v-if="isLogined" DisplayContents="Edit" :CategoryId="categoryId" />
+            <post-menu v-if="isLogined" DisplayContents="Edit" :category-id="categoryId" />
         </div>
     </v-container>
 </template>

@@ -1,11 +1,22 @@
 <script setup lang="ts">
+/**
+ * import
+ */
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-const drawer = ref(false)
-const router = useRouter()
 import { useAuthStore } from '@/stores/auth'
-const authStore = useAuthStore()
+/**
+ * props
+ */
 
+/**
+ * emit
+ */
+
+/**
+ * リアクティブ
+ */
+const drawer = ref<boolean>(false)
 const items = ref([
     {
         title: 'ホーム',
@@ -16,24 +27,46 @@ const items = ref([
         path: '/settings',
     }
 ])
-const isLogined = computed(() => localStorage.getItem('isLoggedIn'))
+/**
+ * 変数
+ */
+const router = useRouter()
+const authStore = useAuthStore()
+/**
+ * 変数(メソッド)
+ */
 
-const clickCategory = (path: string) => {
-    router.push(path)
-}
+/**
+ * watch
+ */
+
+/**
+ * computed
+ */
+const isLogined = computed(() => localStorage.getItem('isLoggedIn'))
+/**
+ * メソッド
+ */
+// ログアウト処理
 async function logout() {
     const success = await authStore.logout()
     if (success) {
         router.push('/login')
     }
 }
-
+// アイテムクリック動作
+const clickItem = (path: string) => {
+    router.push(path)
+}
+/**
+ * ライフサイクル
+ */
 </script>
 
 <template>
     <v-navigation-drawer v-model="drawer" location="bottom" temporary color="background" >
         <v-list v-for="item, index in items" :key="index">
-            <v-list-item @click="clickCategory(item.path)">
+            <v-list-item @click="clickItem(item.path)">
                 <v-list-item-title>{{ item.title }}</v-list-item-title>
             </v-list-item>
         </v-list>

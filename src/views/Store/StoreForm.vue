@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import StoreFormView from '@/components/StoreFormView/StoreForm.vue'
+import StoreFormView from '@/components/Store/StoreForm.vue'
 import { ref, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
-import GlobalHeader from '@/components/parts/GlobalHeader.vue'
+import GlobalHeader from '@/components/Common/GlobalHeader.vue'
 
 
 const route = useRoute()
@@ -31,6 +31,6 @@ onBeforeMount(() => {
 <template>
     <v-main>
         <GlobalHeader />
-        <StoreFormView :isEdit="isEdit" :storeId="storeId" />
+        <StoreFormView :is-edit="isEdit" :store-id="storeId" />
     </v-main>
 </template>

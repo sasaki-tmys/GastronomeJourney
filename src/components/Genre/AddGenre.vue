@@ -1,36 +1,59 @@
 <script setup lang="ts">
+/**
+ * import
+ */
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getDatabase, set, get, push } from 'firebase/database'
 import { ref as dbRef } from 'firebase/database'
+import type { Category } from '@/types/models.d.ts'
 
-const router = useRouter()
-const db = getDatabase()
+/**
+ * props
+ */
 
-interface Category {
-    id: string,
-    category_name: string
-    category_image: string,
-    img_name: string
-}
+/**
+ * emit
+ */
+
+/**
+ * リアクティブ
+ */
 const categoryList = ref<Category[]>()
-
-const genreName = ref('')
+const genreName = ref<string>('')
 const categoryId = ref()
-
 const addGenreData = reactive(
     {
         name: '',
         category_id: ''
     }
 )
+/**
+ * 変数
+ */
+const router = useRouter()
+const db = getDatabase()
 
+/**
+ * 変数(メソッド)
+ */
 const onSubmit = () => {
     addGenreData.name = genreName.value
     addGenreData.category_id = categoryId.value
     postGenre()
 }
+/**
+ * watch
+ */
 
+/**
+ * computed
+ */
+
+/**
+ * メソッド
+ */
+// ジャンル情報の登録
 async function postGenre() {
     const genresRef = dbRef(db, 'genres')
     try {
@@ -43,7 +66,7 @@ async function postGenre() {
         console.error('Error:', error)
     }
 }
-
+// カテゴリー情報の取得
 async function fetchCategory() {
     const db = getDatabase()
     const categoriesRef = dbRef(db, 'categories')
@@ -55,7 +78,7 @@ async function fetchCategory() {
             const categories: Category[] = Object.keys(rawData).map((key) => ({
                 id: key,
                 category_name: rawData[key].category_name,
-                category_image: rawData[key].category_image,
+                category_img: rawData[key].category_image,
                 img_name: rawData[key].img_name
             }))
             categoryList.value = categories
@@ -68,6 +91,9 @@ async function fetchCategory() {
         console.error('Error fetching categories:', error)
     }
 }
+/**
+ * ライフサイクル
+ */
 
 onMounted(() => {
     fetchCategory()
