@@ -1,18 +1,22 @@
 {
   "rules": {
-    ".read": "auth != null || auth == null",
+    ".read": true,
     ".write": "auth != null",
     "users": {
       "$uid": {
-        ".read": true,
+        ".read": "$uid === auth.uid",
         ".write": "$uid === auth.uid"
       }
     },
-      "genres": {
-      ".indexOn": ["category_id"] // インデックスを設定するフィールド
+    "genres": {
+      ".read": true,
+      ".write": "auth != null",
+      ".indexOn": ["category_id"]
     },
-      "stores": {
-        ".indexOn": ["category"]
-      }
+    "stores": {
+      ".read": true,
+      ".write": "auth != null",
+      ".indexOn": ["category"]
+    }
   }
 }

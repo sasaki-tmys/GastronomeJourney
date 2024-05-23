@@ -63,26 +63,39 @@ function onFileSelected(e: any) {
  * 非同期メソッド
  */
 
+// ファイルアップロードとカテゴリデータの更新を行うメソッド
 async function addImg() {
     try {
         const url = await uploadImg(file.value)
         addCategoryData.category_img = url
         console.log("ファイルがアップロードされ、データが更新されました")
     } catch (error) {
-        console.error("アップロード中にエラーが発生しました", error)
+        handleError(error)
     }
 }
 
-async function uploadImg(file: any) {
-    const id = uuidv4()
-    const storageRef = firebaseref(storage, `images/categories/${id}`)
-    try {
-        const uploadTask = await uploadBytesResumable(storageRef, file)
-        return getDownloadURL(uploadTask.ref)
-    } catch(error: any) {
-        alert(JSON.stringify(error, null, 2))
+// ファイルをアップロードし、ダウンロードURLを取得するメソッド
+async function uploadImg(file: File|undefined): Promise<string> {
+    if (file === undefined) {
         return ''
+    } else {
+        const id = uuidv4()
+        const storageRef = firebaseref(storage, `images/categories/${id}`)
+        try {
+            const uploadTask = await uploadBytesResumable(storageRef, file)
+            const url = await getDownloadURL(uploadTask.ref)
+            return url
+        } catch (error) {
+            handleError(error)
+            return ''
+        }
     }
+}
+
+// エラーハンドリングを行う共通メソッド
+function handleError(error: any) {
+    alert(JSON.stringify(error, null, 2))
+    console.error("アップロード中にエラーが発生しました", error)
 }
 
 
