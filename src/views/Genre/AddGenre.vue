@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AddGenre from '@/components/parts/AddGenre.vue'
-import GlobalHeader from '@/components/parts/GlobalHeader.vue'
+import AddGenre from '@/components/Genre/AddGenre.vue'
+import GlobalHeader from '@/components/Common/GlobalHeader.vue'
 </script>
 
 <template>

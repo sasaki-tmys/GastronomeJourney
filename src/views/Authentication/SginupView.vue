@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SginUpForm from '@/components/AuthenticationView/SginUpForm.vue'
+import SginUpForm from '@/components/Authentication/SginUpForm.vue'
 
 </script>
 

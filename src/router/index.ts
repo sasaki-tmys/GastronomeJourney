@@ -1,13 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
-import CategoryDetailView from '@/views/CategoryDetailView.vue'
-import SettingsView from '@/views/SettingsView.vue'
-import CategoryFrom from '@/views/CategoryForm.vue'
-import AddGenre from '@/views/AddGenre.vue'
-import StoreForm from '@/views/StoreForm.vue'
-import StoreDetaleView from '@/views/StoreDetailView.vue'
-import LoginView from '@/views/LoginView.vue'
-import SginUpView from '@/views/SginupView.vue'
+import HomeView from '@/views/Home/HomeView.vue'
+import CategoryDetailView from '@/views/Category/CategoryDetailView.vue'
+import CategoryFrom from '@/views/Category/CategoryForm.vue'
+import SettingsView from '@/views/Settings/SettingsView.vue'
+import AddGenre from '@/views/Genre/AddGenre.vue'
+import StoreForm from '@/views/Store/StoreForm.vue'
+import StoreDetaleView from '@/views/Store/StoreDetailView.vue'
+import LoginView from '@/views/Authentication/LoginView.vue'
+import SginUpView from '@/views/Authentication/SginupView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

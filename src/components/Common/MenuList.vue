@@ -1,17 +1,39 @@
 <script setup lang="ts">
+/**
+ * import
+ */
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+/**
+ * props
+ */
 const props = defineProps({
-    DisplayContents: String,
-    CategoryId: String,
-    StoreId: String,
-    isLogined: Boolean
+    DisplayContents: {
+        type: String,
+        required: true
+    },
+    CategoryId: {
+        type: String,
+        required: false
+    },
+    StoreId: {
+        type: String,
+        required: false
+    },
+    isLogined: {
+        type: Boolean,
+        required: false
+    }
 })
 
-const router = useRouter()
+/**
+ * emit
+ */
 
-
+/**
+ * リアクティブ
+ */
 const addItems = ref([
     { id: '1', icon: 'mdi-pencil-plus', title: '新規投稿', path: '/addstore'},
     { id: '2', icon: 'mdi-tag-plus', title: 'カテゴリー追加', path: '/addcategory'},
@@ -23,6 +45,29 @@ const editCategory = ref([
 const editStore = ref([
     { id: '1', icon: 'mdi-tag-plus', title: '店舗情報編集', path: `/editstore/${props.StoreId}`}
 ])
+/**
+ * 変数
+ */
+const router = useRouter()
+/**
+ * 変数(メソッド)
+ */
+
+/**
+ * watch
+ */
+
+/**
+ * computed
+ */
+
+/**
+ * メソッド
+ */
+
+/**
+ * ライフサイクル
+ */
 
 </script>
 
@@ -73,7 +118,6 @@ const editStore = ref([
 </template>
 
 <style scoped>
-
 .menu-button {
     position: fixed;
     right: 0;

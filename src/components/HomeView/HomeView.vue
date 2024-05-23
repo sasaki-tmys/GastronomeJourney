@@ -1,23 +1,54 @@
 <script setup lang="ts">
+/**
+ * import
+ */
 import router from '@/router'
 import { ref, onMounted, computed } from 'vue'
-import PostMenu from '@/components/parts/MenuList.vue'
+import PostMenu from '@/components/Common/MenuList.vue'
 import { getDatabase, ref as dbRef, get } from 'firebase/database'
+import type { Category } from '@/types/models.d.ts'
 
-const db = getDatabase()
+/**
+ * props
+ */
 
-interface Category {
-    id: string
-    category_name: string
-    category_img: string
-    img_name: string
-}
-const isLogined = computed(() => localStorage.getItem('isLoggedIn'))
+/**
+ * emit
+ */
+
+/**
+ * リアクティブ
+ */
+
 const categoryList = ref<Category[]>()
+
+/**
+ * 変数
+ */
+// firebaseのDB
+const db = getDatabase()
+/**
+ * 変数(メソッド)
+ */
+
 const clickCategory = (id: any) => {
     router.push(`/category/${id}`)
 }
+/**
+ * watch
+ */
 
+/**
+ * computed
+ */
+
+//  ログイン状態の取得
+const isLogined = computed(() => localStorage.getItem('isLoggedIn'))
+
+/**
+ * メソッド
+ */
+// カテゴリー情報の取得
 async function fetchCategoryList() {
     const categoriesRef = dbRef(db, 'categories')
     try {
@@ -42,6 +73,9 @@ async function fetchCategoryList() {
     }
 }
 
+/**
+ * ライフサイクル
+ */
 onMounted(() => {
     fetchCategoryList()
 })
@@ -64,7 +98,7 @@ onMounted(() => {
                     </v-card>
                 </v-col>
             </v-row>
-            <PostMenu DisplayContents="Home" :isLogined="Boolean(isLogined)" />
+            <post-menu DisplayContents="Home" :is-logined="Boolean(isLogined)" />
         </div>
     </v-container>
 </template>

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * import
+ */
 import { ref, reactive, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getStorage, uploadBytesResumable, getDownloadURL, ref as firebaseref } from "firebase/storage"
@@ -6,26 +9,30 @@ import { getDatabase, set, update, get, child, push } from 'firebase/database'
 import { ref as dbRef } from 'firebase/database'
 import { v4 as uuidv4 } from 'uuid'
 
-const props = defineProps({
-    isEdit: Boolean,
-    categoryId: String
-})
-
-const db = getDatabase()
-const storage = getStorage()
-const router = useRouter()
-
 /**
- * 変数
+ * props
+ */
+const props = defineProps({
+    isEdit: {
+        type: Boolean,
+        requred: true
+    },
+    categoryId: {
+        type: String,
+        required: false
+    }
+})
+/**
+ * emit
  */
 
 /**
- * リアクティブ変数
+ * リアクティブ
  */
 const file = ref<File>()
-const categoryName = ref('')
+const categoryName = ref<string>('')
 const imageUrl = ref()
-const inputImage = ref()
+const inputImage = ref<File>()
 const addCategoryData = reactive(
     {
         category_name: '',
@@ -33,13 +40,36 @@ const addCategoryData = reactive(
         img_name: ''
     }
 )
+/**
+ * 変数
+ */
+const db = getDatabase()
+const storage = getStorage()
+const router = useRouter()
+/**
+ * 変数(メソッド)
+ */
+
+/**
+ * watch
+ */
+watch(inputImage, () => {
+    if (imageUrl.value) {
+        imageUrl.value = undefined
+    }
+    
+})
+
+/**
+ * computed
+ */
 
 /**
  * メソッド
  */
 async function onSubmit() {
     addCategoryData.category_name = categoryName.value
-    addCategoryData.img_name = inputImage.value.name
+    addCategoryData.img_name = inputImage.value ? inputImage.value.name : ''
     await addImg()
     console.log(addCategoryData)
     if (props.isEdit) {
@@ -97,12 +127,8 @@ function handleError(error: any) {
     alert(JSON.stringify(error, null, 2))
     console.error("アップロード中にエラーが発生しました", error)
 }
-
-
-/**
- * APIリクエスト
- */
- async function postCategory() {
+// カテゴリー情報登録
+async function postCategory() {
     const categoriesRef = dbRef(db, 'categories')
     try {
         // Firebaseのキーを自動生成して使用する場合
@@ -115,7 +141,7 @@ function handleError(error: any) {
         console.error(error)
     }
 }
-
+// カテゴリー情報更新
 async function updateCategory() {
     try {
         await update(dbRef(db, `categories/${props.categoryId}`), addCategoryData)
@@ -125,7 +151,7 @@ async function updateCategory() {
         console.error(error)
     }
 }
-
+// カテゴリー情報取得
 async function getCategory() {
     const categoryRef = dbRef(db, `categories/${props.categoryId}`)
     try {
@@ -141,16 +167,6 @@ async function getCategory() {
         console.error(error)
     }
 }
-
-/**
- * watchメソッド
- */
-watch(inputImage, () => {
-    if (imageUrl.value) {
-        imageUrl.value = undefined
-    }
-    
-})
 
 /**
  * ライフサイクル
