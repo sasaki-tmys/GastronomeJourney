@@ -1,25 +1,25 @@
 {
   "rules": {
-    ".read": "auth != null",  // 認証されたユーザーのみ全体の読み取りを許可
-    ".write": "auth != null",  // 認証されたユーザーのみ全体の書き込みを許可
+    ".read": "true",
+    ".write": "auth != null",
     "categories": {
       "$category_id": {
-        ".read": true,  // 全てのユーザーが読み取り可能
-        ".write": "auth != null"  // 認証されたユーザーのみ書き込みを許可
+        ".read": true,
+        ".write": "auth != null"
       }
     },
     "genres": {
+      ".indexOn": ["category_id"],
       "$genre_id": {
-        ".read": true,  // 全てのユーザーが読み取り可能
-        ".write": "auth != null && newData.child('category_id').val() != null",  // 認証されたユーザーのみ書き込みを許可し、category_idが存在することを確認
-        ".indexOn": ["category_id"]  // category_idにインデックスを作成
+        ".read": true,
+        ".write": "auth != null && newData.child('category_id').val() != null"
       }
     },
     "stores": {
+      ".indexOn": ["category"],
       "$store_id": {
-        ".read": true,  // 全てのユーザーが読み取り可能
-        ".write": "auth != null",  // 認証されたユーザーのみ書き込みを許可
-        ".indexOn": ["category"]  // categoryにインデックスを作成
+        ".read": true,
+        ".write": "auth != null"
       }
     }
   }

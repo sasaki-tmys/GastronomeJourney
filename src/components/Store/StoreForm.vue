@@ -40,6 +40,7 @@ const genreList = ref<Genre[]>([])
 const filterGenreList = ref<Genre[]>([])
 const inputImage = ref<File>()
 const imageUrls = ref<string[]>([])
+const oldImageUrls = ref<string[]>([])
 const addStoreData = reactive({
     nameOfStore: '',
     category: '',
@@ -160,6 +161,7 @@ const onSubmit = handleSubmit(async (values) => {
     addStoreData.contents = values.contents
     console.log(addStoreData)
     if (props.isEdit) {
+        await updateImg()
         updateStore()
     } else {
         await addImg()
@@ -281,6 +283,7 @@ async function getStore() {
             fetchFilterGenreList(data.genre)
             selectGenre.value = data.genre
             imageUrls.value = data.photos.split(',')
+            oldImageUrls.value = imageUrls.value
             addStoreData.photos = data.photos
             console.log('店舗情報を取得しました。')
         } else {
@@ -358,7 +361,7 @@ async function deleteStore() {
 async function addImg() {
     try {
         const urls = await uploadImages(files.value)
-        addStoreData.photos = urls
+        addStoreData.photos = urls.join(',')
         console.log("ファイルがアップロードされ、データが更新されました")
     } catch (error) {
         console.error("アップロード中にエラーが発生しました", error)
@@ -366,9 +369,9 @@ async function addImg() {
 }
 
 // 画像を並列でアップロードするメソッド
-async function uploadImages(files: FileList | undefined): Promise<string> {
+async function uploadImages(files: FileList | undefined): Promise<string[]> {
     if (files === undefined) {
-        return ''
+        return []
     } else {
         const uploadPromises = Array.from(files).map(async (file) => {
             const id = uuidv4()
@@ -377,11 +380,46 @@ async function uploadImages(files: FileList | undefined): Promise<string> {
             const url = await getDownloadURL(uploadTask.ref)
             return url
         })
-
         const urls = await Promise.all(uploadPromises)
-        return urls.join(',')
+        return urls
     }
 }
+// 画像を更新するメソッド
+async function updateImg() {
+    try {
+        const newUrls = await uploadImages(files.value)
+        const oldUrlsArray = oldImageUrls.value
+        const urlsToDelete = oldUrlsArray.filter(url => !newUrls.includes(url))
+        
+        // 古いURLを削除
+        if (urlsToDelete.length > 0) {
+            await deleteOldImages(urlsToDelete)
+        }
+        
+        // 新しいURLを保存
+        addStoreData.photos = newUrls.join(',')
+        console.log("画像が更新されました")
+    } catch (error) {
+        console.error("更新中にエラーが発生しました", error)
+    }
+}
+
+// 古い画像を削除するメソッド
+async function deleteOldImages(urls: string[]) {
+    try {
+        const deletePromises = urls.map(async (url) => {
+            const storageRef = firebaseref(storage, url)
+            await deleteObject(storageRef)
+        })
+        
+        await Promise.all(deletePromises)
+        console.log("古い画像が削除されました")
+    } catch (error) {
+        console.error("古い画像の削除中にエラーが発生しました", error)
+    }
+}
+
+
 
 
 /**
